@@ -29,8 +29,9 @@ class AccountService
 
     raise ArgumentError, 'Invalid car plate' if input[:is_driver] && !input[:car_plate].match?(/[A-Z]{3}[0-9]{4}/)
 
-    connection.exec('INSERT INTO cccat13.account (account_id, name, cpf, email) VALUES ($1, $2, $3, $4)',
-                    [account_id, input[:name], input[:cpf], input[:email]])
+    connection.exec('INSERT INTO cccat13.account (account_id, name, cpf, email, is_passenger, is_driver, date) VALUES ($1, $2, $3, $4, $5, $6, $7)',
+                    [account_id, input[:name], input[:cpf], input[:email], input[:is_passenger], input[:is_driver],
+                     Time.now])
 
     send_email(input[:email], 'Welcome to our app', 'You are now able to use our app')
 
@@ -41,15 +42,22 @@ class AccountService
 
   def account(account_id)
     connection = PG.connect('postgres://postgres:123456@localhost:5432/app')
-    connection.exec("SELECT account_id, name, cpf, email FROM cccat13.account WHERE account_id = '#{account_id}'") do |result|
-      result.each do |row|
-        return { account_id: row['account_id'],
-                 name: row['name'],
-                 cpf: row['cpf'],
-                 email: row['email'] }
-      end
-    end
+
+    row = connection.exec("SELECT account_id, name, cpf, email, is_passenger::int, is_driver::int FROM cccat13.account WHERE account_id = '#{account_id}'")[0]
+
+    { account_id: row['account_id'],
+      email: row['email'],
+      name: row['name'],
+      is_passenger: boolean(row['is_passenger']),
+      is_driver: boolean(row['is_driver']),
+      cpf: row['cpf'] }
   ensure
     connection.close if connection
+  end
+
+  private
+
+  def boolean(input)
+    input == '1'
   end
 end

@@ -11,10 +11,12 @@ RSpec.describe AccountService do
     output = account_service.signup(input)
     account = account_service.account(output[:account_id])
 
-    expect(account).to_not be_nil
+    expect(account).to be_truthy
     expect(account[:name]).to eq(input[:name])
     expect(account[:email]).to eq(input[:email])
     expect(account[:cpf]).to eq(input[:cpf])
+    expect(account[:is_passenger]).to eq(input[:is_passenger])
+    expect(account[:is_driver]).to eq(false)
     expect(account[:account_id]).to be_truthy
   end
 
@@ -74,6 +76,7 @@ RSpec.describe AccountService do
 
     expect(account[:account_id]).to be_truthy
     expect(account[:cpf]).to eq(input[:cpf])
+    expect(account[:is_driver]).to eq(true)
   end
 
   it 'should not create an driver with invalid car plate' do
