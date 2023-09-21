@@ -3,6 +3,9 @@
 source 'https://rubygems.org'
 
 # gem "rails"
+#
+gem 'pg'
+gem 'securerandom'
 
 group :development, :test do
   gem 'rspec'
