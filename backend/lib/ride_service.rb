@@ -11,27 +11,48 @@ class RideService
   def request_ride(input)
     connection = PG.connect('postgres://postgres:123456@localhost:5432/app')
     ride_id = SecureRandom.uuid
-
     account = account_service.account(input[:passenger_id])
+    raise 'Account is not a passenger' if account[:is_passenger] == false
 
-    raise 'Account is not a passenger' if account[:is_passenger].nil?
+    if connection.exec("SELECT ride_id FROM cccat13.ride WHERE passenger_id = '#{input[:passenger_id]}' AND status <> 'completed'").first
+      raise 'Passenger already in a ride'
+    end
 
     connection.exec(
-      'INSERT INTO cccat13.ride (ride_id, passenger_id, from_lat, from_long, to_lat, to_long, date) VALUES ($1, $2, $3, $4, $5, $6, $7)', [
-        ride_id, input[:passenger_id], input[:from][:lat], input[:from][:lng], input[:to][:lat], input[:to][:lng], Time.now
+      'INSERT INTO cccat13.ride (ride_id, passenger_id, from_lat, from_long, to_lat, to_long, date, status) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)', [
+        ride_id, input[:passenger_id], input[:from][:lat], input[:from][:lng], input[:to][:lat], input[:to][:lng], Time.now, 'requested'
       ]
     )
-
     { ride_id: }
+  ensure
+    connection.close if connection
+  end
+
+  def accept_ride(input)
+    connection = PG.connect('postgres://postgres:123456@localhost:5432/app')
+
+    driver = account_service.account(input[:driver_id])
+
+    raise 'Account is not a driver' if driver[:is_driver] == false
+    raise 'Ride status is not requested' if ride(input[:ride_id])[:status] != 'requested'
+    if connection.exec("SELECT ride_id FROM cccat13.ride WHERE driver_id = '#{input[:driver_id]}' AND status <> 'completed'").first
+      raise 'Driver already in a ride'
+    end
+
+    connection.exec(
+      'UPDATE cccat13.ride SET status = $1, driver_id = $2 WHERE ride_id = $3', [
+        'accepted', input[:driver_id], input[:ride_id]
+      ]
+    )
   ensure
     connection.close if connection
   end
 
   def ride(ride_id)
     connection = PG.connect('postgres://postgres:123456@localhost:5432/app')
-    row = connection.exec("SELECT passenger_id FROM cccat13.ride WHERE ride_id = '#{ride_id}'")[0]
+    row = connection.exec("SELECT passenger_id, ride_id, status FROM cccat13.ride WHERE ride_id = '#{ride_id}'")[0]
 
-    { passenger_id: row['passenger_id'] }
+    { passenger_id: row['passenger_id'], ride_id: row['ride_id'], status: row['status'] }
   ensure
     connection.close if connection
   end
