@@ -4,8 +4,13 @@ source 'https://rubygems.org'
 
 # gem "rails"
 #
+gem 'activemodel'
+gem 'http'
 gem 'pg'
+gem 'pry'
+gem 'puma'
 gem 'securerandom'
+gem 'sinatra'
 
 group :development, :test do
   gem 'rspec'

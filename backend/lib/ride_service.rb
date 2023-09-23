@@ -50,9 +50,9 @@ class RideService
 
   def ride(ride_id)
     connection = PG.connect('postgres://postgres:123456@localhost:5432/app')
-    row = connection.exec("SELECT passenger_id, ride_id, status FROM cccat13.ride WHERE ride_id = '#{ride_id}'")[0]
+    row = connection.exec("SELECT passenger_id, ride_id, status, driver_id FROM cccat13.ride WHERE ride_id = '#{ride_id}'")[0]
 
-    { passenger_id: row['passenger_id'], ride_id: row['ride_id'], status: row['status'] }
+    { passenger_id: row['passenger_id'], ride_id: row['ride_id'], status: row['status'], driver_id: row['driver_id'] }
   ensure
     connection.close if connection
   end

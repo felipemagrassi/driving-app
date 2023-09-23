@@ -3,7 +3,7 @@
 require 'securerandom'
 require 'pg'
 
-require 'cpf_validator'
+require_relative 'cpf_validator'
 
 class AccountService
   attr_reader :cpf_validator
@@ -43,7 +43,9 @@ class AccountService
   def account(account_id)
     connection = PG.connect('postgres://postgres:123456@localhost:5432/app')
 
-    row = connection.exec("SELECT account_id, name, cpf, email, is_passenger::int, is_driver::int FROM cccat13.account WHERE account_id = '#{account_id}'")[0]
+    row = connection.exec("SELECT account_id, name, cpf, email, is_passenger::int, is_driver::int FROM cccat13.account WHERE account_id = '#{account_id}'").first
+
+    return if row.nil?
 
     { account_id: row['account_id'],
       email: row['email'],
