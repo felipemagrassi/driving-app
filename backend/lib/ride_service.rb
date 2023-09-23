@@ -1,17 +1,20 @@
 require 'securerandom'
 require 'pg'
 
+require 'account_dao'
+
 class RideService
-  attr_reader :account_service
+  attr_reader :account_dao
 
   def initialize
-    @account_service = AccountService.new
+    @account_dao = AccountDAO.new
   end
 
   def request_ride(input)
     connection = PG.connect('postgres://postgres:123456@localhost:5432/app')
     ride_id = SecureRandom.uuid
-    account = account_service.account(input[:passenger_id])
+    account = account_dao.find_by_account_id(input[:passenger_id])
+    puts account
     raise 'Account is not a passenger' if account[:is_passenger] == false
 
     if connection.exec("SELECT ride_id FROM cccat13.ride WHERE passenger_id = '#{input[:passenger_id]}' AND status <> 'completed'").first
@@ -33,7 +36,7 @@ class RideService
   def accept_ride(input)
     connection = PG.connect('postgres://postgres:123456@localhost:5432/app')
 
-    driver = account_service.account(input[:driver_id])
+    driver = account_dao.find_by_account_id(input[:driver_id])
 
     raise 'Account is not a driver' if driver[:is_driver] == false
     raise 'Ride status is not requested' if ride(input[:ride_id])[:status] != 'requested'
