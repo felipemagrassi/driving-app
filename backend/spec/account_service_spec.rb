@@ -17,6 +17,8 @@ RSpec.describe AccountService do
     expect(account[:cpf]).to eq(input[:cpf])
     expect(account[:is_passenger]).to eq(input[:is_passenger])
     expect(account[:is_driver]).to eq(false)
+    expect(account[:is_verified]).to eq(false)
+    expect(account[:verification_code]).to be_truthy
     expect(account[:account_id]).to be_truthy
   end
 

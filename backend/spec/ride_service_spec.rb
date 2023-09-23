@@ -35,6 +35,13 @@ RSpec.describe RideService do
 
     expect(ride).to be_truthy
     expect(ride[:passenger_id]).to eq(output_signup[:account_id])
+    expect(ride[:driver_id]).to be_nil
+    expect(ride[:from_lat]).to eq(input_request_ride[:from][:lat].to_s)
+    expect(ride[:from_long]).to eq(input_request_ride[:from][:lng].to_s)
+    expect(ride[:to_lat]).to eq(input_request_ride[:to][:lat].to_s)
+    expect(ride[:to_long]).to eq(input_request_ride[:to][:lng].to_s)
+    expect(ride[:fare]).to eq(0.to_s)
+    expect(ride[:distance]).to eq(0.to_s)
     expect(ride[:ride_id]).to be_truthy
     expect(ride[:status]).to eq('requested')
   end
