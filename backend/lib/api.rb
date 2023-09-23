@@ -2,7 +2,6 @@ require_relative 'ride_service'
 require_relative 'account_service'
 require_relative 'command'
 
-require 'pry'
 require 'sinatra'
 require 'json'
 
@@ -15,7 +14,6 @@ end
 
 post('/signup') do
   command = SignupCommand.new(JSON.parse(request.body.read))
-  puts "signup command: #{command}"
   content_type :json
   status 201
   body account_service.signup(command).to_json
