@@ -33,15 +33,11 @@ class AccountDAO
     return account unless account
 
     {
-      account_id: account['account_id'],
-      email: account['email'],
-      name: account['name'],
-      cpf: account['cpf'],
+      **account,
       is_passenger: boolean(account['is_passenger']),
       is_driver: boolean(account['is_driver']),
-      is_verified: boolean(account['is_verified']),
-      verification_code: account['verification_code']
-    }
+      is_verified: boolean(account['is_verified'])
+    }.transform_keys(&:to_sym)
   end
 
   def boolean(input)
