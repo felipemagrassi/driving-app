@@ -1,6 +1,106 @@
 require 'account_service'
 
 RSpec.describe AccountService do
+  it 'should create an passenger with stub' do
+    input = { name: 'John Doe',
+              email: "john.doe#{rand(1000)}@email.com",
+              cpf: '96273263728',
+              is_driver: false,
+              verification_code: rand(1000).to_s,
+              is_verified: false,
+              is_passenger: true }
+
+    account_dao_double = instance_double('AccountDAOPostgres')
+    account_service = AccountService.new(account_dao: account_dao_double)
+
+    allow(account_dao_double).to receive(:save)
+    allow(account_dao_double).to receive(:find_by_email)
+
+    output = account_service.signup(input)
+    input[:account_id] = output[:account_id]
+    allow(account_dao_double).to receive(:find_by_account_id).and_return(input)
+    account = account_service.account(output[:account_id])
+
+    expect(account).to be_truthy
+    expect(account[:name]).to eq(input[:name])
+    expect(account[:email]).to eq(input[:email])
+    expect(account[:cpf]).to eq(input[:cpf])
+    expect(account[:is_passenger]).to eq(input[:is_passenger])
+    expect(account[:is_driver]).to eq(false)
+    expect(account[:is_verified]).to eq(false)
+    expect(account[:verification_code]).to be_truthy
+    expect(account[:account_id]).to be_truthy
+  end
+
+  it 'should create an passenger with mock' do
+    input = { name: 'John Doe',
+              email: "john.doe#{rand(1000)}@email.com",
+              cpf: '96273263728',
+              is_driver: false,
+              verification_code: rand(1000).to_s,
+              is_verified: false,
+              is_passenger: true }
+
+    account_dao_double = instance_double('AccountDAOPostgres')
+    account_service = AccountService.new(account_dao: account_dao_double)
+
+    allow(account_dao_double).to receive(:save)
+    allow(account_dao_double).to receive(:find_by_email)
+
+    output = account_service.signup(input)
+    input[:account_id] = output[:account_id]
+    allow(account_dao_double).to receive(:find_by_account_id).and_return(input)
+    account = account_service.account(output[:account_id])
+
+    expect(account_dao_double).to have_received(:save).once
+    expect(account_dao_double).to have_received(:find_by_email).with(input[:email]).once
+    expect(account_dao_double).to have_received(:find_by_account_id).with(output[:account_id]).once
+    expect(account).to be_truthy
+    expect(account[:name]).to eq(input[:name])
+    expect(account[:email]).to eq(input[:email])
+    expect(account[:cpf]).to eq(input[:cpf])
+    expect(account[:is_passenger]).to eq(input[:is_passenger])
+    expect(account[:is_driver]).to eq(false)
+    expect(account[:is_verified]).to eq(false)
+    expect(account[:verification_code]).to be_truthy
+    expect(account[:account_id]).to be_truthy
+  end
+
+  it 'should create an passenger with spy on mailer' do
+    input = { name: 'John Doe',
+              email: "john.doe#{rand(1000)}@email.com",
+              cpf: '96273263728',
+              is_driver: false,
+              verification_code: rand(1000).to_s,
+              is_verified: false,
+              is_passenger: true }
+
+    account_dao_double = instance_double('AccountDAOPostgres')
+    mailer_gateway_double = instance_spy('MailerGateway')
+    account_service = AccountService.new(account_dao: account_dao_double, mailer_gateway: mailer_gateway_double)
+
+    allow(account_dao_double).to receive(:save)
+    allow(account_dao_double).to receive(:find_by_email)
+    allow(mailer_gateway_double).to receive(:send)
+
+    output = account_service.signup(input)
+    input[:account_id] = output[:account_id]
+    allow(account_dao_double).to receive(:find_by_account_id).and_return(input)
+    account = account_service.account(output[:account_id])
+
+    expect(mailer_gateway_double).to have_received(:send).with(input[:email], 'Welcome to our app',
+                                                               'You are now able to use our app')
+    expect(account).to be_truthy
+    expect(account[:name]).to eq(input[:name])
+    expect(account[:email]).to eq(input[:email])
+    expect(account[:cpf]).to eq(input[:cpf])
+    expect(account[:is_passenger]).to eq(input[:is_passenger])
+    expect(account[:is_driver]).to eq(false)
+    expect(account[:is_verified]).to eq(false)
+    expect(account[:verification_code]).to be_truthy
+    expect(account[:account_id]).to be_truthy
+  end
+
   it 'should create an passenger' do
     input = { name: 'John Doe',
               email: "john.doe#{rand(1000)}@email.com",

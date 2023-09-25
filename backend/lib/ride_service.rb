@@ -6,8 +6,8 @@ require 'account_dao'
 class RideService
   attr_reader :account_dao
 
-  def initialize
-    @account_dao = AccountDAO.new
+  def initialize(account_dao: AccountDAOPostgres.new)
+    @account_dao = account_dao
   end
 
   def request_ride(input)

@@ -1,9 +1,11 @@
 require 'account_dao'
+require 'account_dao_inmemory'
+require 'account_dao_postgres'
 require 'securerandom'
 
-RSpec.describe AccountDAO do
+RSpec.shared_examples 'AccountDAO Adapter' do
   it 'should save an account and retrieve by email' do
-    account_dao = AccountDAO.new
+    account_dao = described_class.new
 
     input = { name: 'John Doe',
               email: "john.doe#{rand(1000)}@email.com",
@@ -18,7 +20,7 @@ RSpec.describe AccountDAO do
   end
 
   it 'should save an account and retrieve by account_id' do
-    account_dao = AccountDAO.new
+    account_dao = described_class.new
 
     input = {
       account_id: SecureRandom.uuid,
@@ -34,4 +36,12 @@ RSpec.describe AccountDAO do
 
     expect(account).to be_truthy
   end
+end
+
+RSpec.describe AccountDAOInMemory do
+  it_behaves_like 'AccountDAO Adapter'
+end
+
+RSpec.describe AccountDAOPostgres do
+  it_behaves_like 'AccountDAO Adapter'
 end

@@ -4,18 +4,17 @@ require 'securerandom'
 require 'pg'
 
 require_relative 'cpf_validator'
-require_relative 'account_dao'
+require_relative 'account_dao_postgres'
+require_relative 'mailer_gateway'
 
 class AccountService
-  attr_reader :cpf_validator, :account_dao
+  attr_reader :cpf_validator, :account_dao, :mailer_gateway
 
-  def initialize
-    @cpf_validator = CpfValidator.new
-    @account_dao = AccountDAO.new
-  end
-
-  def send_email(email, subject, message)
-    puts "Sending email to #{email} with subject #{subject} and message #{message}"
+  def initialize(cpf_validator: CpfValidator.new, account_dao: AccountDAOPostgres.new,
+                 mailer_gateway: MailerGateway.new)
+    @cpf_validator = cpf_validator
+    @mailer_gateway = mailer_gateway
+    @account_dao = account_dao
   end
 
   def signup(input)
@@ -41,7 +40,7 @@ class AccountService
                        verification_code: SecureRandom.uuid
                      })
 
-    send_email(input[:email], 'Welcome to our app', 'You are now able to use our app')
+    mailer_gateway.send(input[:email], 'Welcome to our app', 'You are now able to use our app')
 
     { account_id: }
   end
