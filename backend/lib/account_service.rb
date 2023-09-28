@@ -4,7 +4,7 @@ require 'securerandom'
 require 'pg'
 
 require_relative 'cpf_validator'
-require_relative 'account_dao_postgres'
+require_relative 'account_dao'
 require_relative 'mailer_gateway'
 
 class AccountService

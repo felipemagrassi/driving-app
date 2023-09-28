@@ -1,5 +1,7 @@
 require 'pg'
 
+require_relative 'account_dao'
+
 class AccountDAOPostgres < AccountDAO
   def find_by_email(email)
     connection = PG.connect('postgres://postgres:123456@localhost:5432/app')

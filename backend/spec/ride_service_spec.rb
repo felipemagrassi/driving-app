@@ -4,19 +4,20 @@ require 'account_service'
 require 'account_dao_inmemory'
 
 RSpec.describe RideService do
+  let(:account_dao) { AccountDAOInMemory.new }
+  let(:account_service) { AccountService.new(account_dao:) }
+  let(:ride_service) { RideService.new(account_dao:) }
+
   it 'should request a ride' do
     input_signup = { name: 'John Doe',
                      email: "john.doe#{rand(100_000)}@email.com",
                      cpf: '96273263728',
                      is_passenger: true }
-    account_dao = AccountDAOInMemory.new
-    account_service = AccountService.new(account_dao:)
     output_signup = account_service.signup(input_signup)
 
     input_request_ride = { passenger_id: output_signup[:account_id],
                            from: { lat: -23.5656, lng: -46.6565 },
                            to: { lat: -23.5656, lng: -46.6565 } }
-    ride_service = RideService.new(account_dao:)
     output_request_ride = ride_service.request_ride(input_request_ride)
     expect(output_request_ride).to be_truthy
   end
@@ -26,14 +27,11 @@ RSpec.describe RideService do
                      email: "john.doe#{rand(100_000)}@email.com",
                      cpf: '96273263728',
                      is_passenger: true }
-    account_dao = AccountDAOInMemory.new
-    account_service = AccountService.new(account_dao:)
     output_signup = account_service.signup(input_signup)
 
     input_request_ride = { passenger_id: output_signup[:account_id],
                            from: { lat: -23.5656, lng: -46.6565 },
                            to: { lat: -23.5656, lng: -46.6565 } }
-    ride_service = RideService.new(account_dao:)
     output_request_ride = ride_service.request_ride(input_request_ride)
     ride = ride_service.ride(output_request_ride[:ride_id])
 
@@ -55,14 +53,11 @@ RSpec.describe RideService do
                      email: "john.doe#{rand(100_000)}@email.com",
                      cpf: '96273263728',
                      is_passenger: false }
-    account_dao = AccountDAOInMemory.new
-    account_service = AccountService.new(account_dao:)
     output_signup = account_service.signup(input_signup)
 
     input_request_ride = { passenger_id: output_signup[:account_id],
                            from: { lat: -23.5656, lng: -46.6565 },
                            to: { lat: -23.5656, lng: -46.6565 } }
-    ride_service = RideService.new
     expect { ride_service.request_ride(input_request_ride) }.to raise_error('Account is not a passenger')
   end
 
@@ -71,13 +66,11 @@ RSpec.describe RideService do
                      email: "john.doe#{rand(100_000)}@email.com",
                      cpf: '96273263728',
                      is_passenger: true }
-    account_service = AccountService.new
     output_signup = account_service.signup(input_signup)
 
     input_request_ride = { passenger_id: output_signup[:account_id],
                            from: { lat: -23.5656, lng: -46.6565 },
                            to: { lat: -23.5656, lng: -46.6565 } }
-    ride_service = RideService.new
     ride_service.request_ride(input_request_ride)
     expect { ride_service.request_ride(input_request_ride) }.to raise_error('Passenger already in a ride')
   end
@@ -87,7 +80,6 @@ RSpec.describe RideService do
                                email: "john.doe#{rand(100_000)}@email.com",
                                cpf: '96273263728',
                                is_passenger: true }
-    account_service = AccountService.new
     passenger_output_signup = account_service.signup(passenger_signup_input)
 
     driver_signup_input = { name: 'John Doe',
@@ -95,14 +87,12 @@ RSpec.describe RideService do
                             cpf: '96273263728',
                             car_plate: 'ABC1234',
                             is_driver: true }
-    account_service = AccountService.new
     driver_signup_output = account_service.signup(driver_signup_input)
 
     input_request_ride = { passenger_id: passenger_output_signup[:account_id],
                            from: { lat: -23.5656, lng: -46.6565 },
                            to: { lat: -23.5656, lng: -46.6565 } }
 
-    ride_service = RideService.new
     output_request_ride = ride_service.request_ride(input_request_ride)
     ride = ride_service.ride(output_request_ride[:ride_id])
 
@@ -121,7 +111,6 @@ RSpec.describe RideService do
                                email: "john.doe#{rand(100_000)}@email.com",
                                cpf: '96273263728',
                                is_passenger: true }
-    account_service = AccountService.new
     passenger_output_signup = account_service.signup(passenger_signup_input)
 
     driver_signup_input = { name: 'John Doe',
@@ -129,14 +118,12 @@ RSpec.describe RideService do
                             cpf: '96273263728',
                             car_plate: 'ABC1234',
                             is_driver: false }
-    account_service = AccountService.new
     driver_signup_output = account_service.signup(driver_signup_input)
 
     input_request_ride = { passenger_id: passenger_output_signup[:account_id],
                            from: { lat: -23.5656, lng: -46.6565 },
                            to: { lat: -23.5656, lng: -46.6565 } }
 
-    ride_service = RideService.new
     output_request_ride = ride_service.request_ride(input_request_ride)
     ride = ride_service.ride(output_request_ride[:ride_id])
 
@@ -153,7 +140,6 @@ RSpec.describe RideService do
                                email: "john.doe#{rand(100_000)}@email.com",
                                cpf: '96273263728',
                                is_passenger: true }
-    account_service = AccountService.new
     passenger_output_signup = account_service.signup(passenger_signup_input)
 
     driver_signup_input = { name: 'John Doe',
@@ -161,14 +147,12 @@ RSpec.describe RideService do
                             cpf: '96273263728',
                             car_plate: 'ABC1234',
                             is_driver: true }
-    account_service = AccountService.new
     driver_signup_output = account_service.signup(driver_signup_input)
 
     input_request_ride = { passenger_id: passenger_output_signup[:account_id],
                            from: { lat: -23.5656, lng: -46.6565 },
                            to: { lat: -23.5656, lng: -46.6565 } }
 
-    ride_service = RideService.new
     output_request_ride = ride_service.request_ride(input_request_ride)
     ride = ride_service.ride(output_request_ride[:ride_id])
 
@@ -186,7 +170,6 @@ RSpec.describe RideService do
                                email: "john.doe#{rand(100_000)}@email.com",
                                cpf: '96273263728',
                                is_passenger: true }
-    account_service = AccountService.new
     second_passenger_output_signup = account_service.signup(passenger_signup_input)
 
     second_passenger_signup_input = { name: 'John Doe',
@@ -200,7 +183,6 @@ RSpec.describe RideService do
                             cpf: '96273263728',
                             car_plate: 'ABC1234',
                             is_driver: true }
-    account_service = AccountService.new
     driver_signup_output = account_service.signup(driver_signup_input)
 
     input_second_request_ride = { passenger_id: second_passenger_output_signup[:account_id],
@@ -211,7 +193,6 @@ RSpec.describe RideService do
                            from: { lat: -23.5656, lng: -46.6565 },
                            to: { lat: -23.5656, lng: -46.6565 } }
 
-    ride_service = RideService.new
     output_request_ride = ride_service.request_ride(input_request_ride)
     output_request_second_ride = ride_service.request_ride(input_second_request_ride)
     ride = ride_service.ride(output_request_ride[:ride_id])

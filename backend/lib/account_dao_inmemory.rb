@@ -2,6 +2,7 @@ class AccountDAOInMemory < AccountDAO
   attr_reader :accounts
 
   def initialize
+    super
     @accounts = []
   end
 

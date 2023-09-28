@@ -1,6 +1,9 @@
 require 'account_service'
+require 'account_dao_inmemory'
 
 RSpec.describe AccountService do
+  let(:account_service) { AccountService.new(account_dao: AccountDAOInMemory.new) }
+
   it 'should create an passenger with stub' do
     input = { name: 'John Doe',
               email: "john.doe#{rand(1000)}@email.com",
@@ -11,8 +14,6 @@ RSpec.describe AccountService do
               is_passenger: true }
 
     account_dao_double = instance_double('AccountDAOPostgres')
-    account_service = AccountService.new(account_dao: account_dao_double)
-
     allow(account_dao_double).to receive(:save)
     allow(account_dao_double).to receive(:find_by_email)
 
@@ -33,15 +34,14 @@ RSpec.describe AccountService do
   end
 
   it 'should create an passenger with mock' do
-    input = { name: 'John Doe',
-              email: "john.doe#{rand(1000)}@email.com",
+    input = { name: 'John Doe', email: "john.doe#{rand(1000)}@email.com",
               cpf: '96273263728',
               is_driver: false,
               verification_code: rand(1000).to_s,
               is_verified: false,
               is_passenger: true }
 
-    account_dao_double = instance_double('AccountDAOPostgres')
+    account_dao_double = instance_double('AccountDAO')
     account_service = AccountService.new(account_dao: account_dao_double)
 
     allow(account_dao_double).to receive(:save)
@@ -75,8 +75,9 @@ RSpec.describe AccountService do
               is_verified: false,
               is_passenger: true }
 
-    account_dao_double = instance_double('AccountDAOPostgres')
+    account_dao_double = instance_double('AccountDAO')
     mailer_gateway_double = instance_spy('MailerGateway')
+
     account_service = AccountService.new(account_dao: account_dao_double, mailer_gateway: mailer_gateway_double)
 
     allow(account_dao_double).to receive(:save)
@@ -105,9 +106,9 @@ RSpec.describe AccountService do
     input = { name: 'John Doe',
               email: "john.doe#{rand(1000)}@email.com",
               cpf: '96273263728',
+              is_driver: false,
               is_passenger: true }
 
-    account_service = AccountService.new
     output = account_service.signup(input)
     account = account_service.account(output[:account_id])
 
@@ -128,7 +129,6 @@ RSpec.describe AccountService do
               cpf: '96273263728',
               is_passenger: true }
 
-    account_service = AccountService.new
     expect { account_service.signup(input) }.to raise_error(ArgumentError, 'Invalid Name')
   end
 
@@ -138,7 +138,6 @@ RSpec.describe AccountService do
               cpf: '96273263728',
               is_passenger: true }
 
-    account_service = AccountService.new
     expect { account_service.signup(input) }.to raise_error(ArgumentError, 'Invalid Email')
   end
 
@@ -148,7 +147,6 @@ RSpec.describe AccountService do
               cpf: '96273263700',
               is_passenger: true }
 
-    account_service = AccountService.new
     expect { account_service.signup(input) }.to raise_error(ArgumentError, 'Invalid CPF')
   end
 
@@ -158,7 +156,6 @@ RSpec.describe AccountService do
               cpf: '96273263728',
               is_passenger: true }
 
-    account_service = AccountService.new
     account_service.signup(input)
 
     expect { account_service.signup(input) }.to raise_error('Account already exists')
@@ -171,7 +168,6 @@ RSpec.describe AccountService do
               car_plate: 'AAA1234',
               is_driver: true }
 
-    account_service = AccountService.new
     output = account_service.signup(input)
 
     account = account_service.account(output[:account_id])
@@ -188,7 +184,6 @@ RSpec.describe AccountService do
               car_plate: 'ABC123',
               is_driver: true }
 
-    account_service = AccountService.new
     expect { account_service.signup(input) }.to raise_error(ArgumentError, 'Invalid car plate')
   end
 end

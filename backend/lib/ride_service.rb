@@ -1,7 +1,7 @@
 require 'securerandom'
 require 'pg'
 
-require 'account_dao'
+require_relative 'account_dao_postgres'
 
 class RideService
   attr_reader :account_dao
