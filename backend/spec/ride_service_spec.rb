@@ -2,25 +2,13 @@ require 'ride_service'
 require 'account_service'
 
 require 'account_dao_inmemory'
+require 'ride_dao_postgres'
 
 RSpec.describe RideService do
   let(:account_dao) { AccountDAOInMemory.new }
+  let(:ride_dao) { RideDAOPostgres.new }
   let(:account_service) { AccountService.new(account_dao:) }
-  let(:ride_service) { RideService.new(account_dao:) }
-
-  it 'should request a ride' do
-    input_signup = { name: 'John Doe',
-                     email: "john.doe#{rand(100_000)}@email.com",
-                     cpf: '96273263728',
-                     is_passenger: true }
-    output_signup = account_service.signup(input_signup)
-
-    input_request_ride = { passenger_id: output_signup[:account_id],
-                           from: { lat: -23.5656, lng: -46.6565 },
-                           to: { lat: -23.5656, lng: -46.6565 } }
-    output_request_ride = ride_service.request_ride(input_request_ride)
-    expect(output_request_ride).to be_truthy
-  end
+  let(:ride_service) { RideService.new(account_dao:, ride_dao:) }
 
   it 'should request and consult a ride' do
     input_signup = { name: 'John Doe',

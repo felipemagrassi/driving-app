@@ -2,35 +2,34 @@ require 'securerandom'
 require 'pg'
 
 require_relative 'account_dao_postgres'
+require_relative 'ride_dao_postgres'
 
 class RideService
-  attr_reader :account_dao
+  attr_reader :account_dao, :ride_dao
 
-  def initialize(account_dao: AccountDAOPostgres.new)
+  def initialize(account_dao: AccountDAOPostgres.new, ride_dao: RideDAOPostgres.new)
     @account_dao = account_dao
+    @ride_dao = ride_dao
   end
 
   def request_ride(input)
-    connection = PG.connect('postgres://postgres:123456@localhost:5432/app')
     ride_id = SecureRandom.uuid
     account = account_dao.find_by_account_id(input[:passenger_id])
-    puts account
     raise 'Account is not a passenger' if account[:is_passenger] == false
+    raise 'Passenger already in a ride' if ride_dao.find_active_rides_by_passenger_id(input[:passenger_id])
 
-    if connection.exec("SELECT ride_id FROM cccat13.ride WHERE passenger_id = '#{input[:passenger_id]}' AND status <> 'completed'").first
-      raise 'Passenger already in a ride'
-    end
-
-    connection.exec(
-      'INSERT INTO
-      cccat13.ride (ride_id, passenger_id, from_lat, from_long, to_lat, to_long, date, status, fare, distance)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)', [
-        ride_id, input[:passenger_id], input[:from][:lat], input[:from][:lng], input[:to][:lat], input[:to][:lng], Time.now, 'requested', 0, 0
-      ]
+    ride_dao.save(
+      {
+        **input,
+        ride_id:,
+        date: Time.now,
+        status: 'requested',
+        fare: 0,
+        distance: 0
+      }
     )
+
     { ride_id: }
-  ensure
-    connection.close if connection
   end
 
   def accept_ride(input)
@@ -40,30 +39,12 @@ class RideService
 
     raise 'Account is not a driver' if driver[:is_driver] == false
     raise 'Ride status is not requested' if ride(input[:ride_id])[:status] != 'requested'
-    if connection.exec("SELECT ride_id FROM cccat13.ride WHERE driver_id = '#{input[:driver_id]}' AND (status = 'accepted' OR status = 'in_progress')").first
-      raise 'Driver already in a ride'
-    end
+    raise 'Driver already in a ride' if ride_dao.find_active_rides_by_driver_id(input[:driver_id])
 
-    connection.exec(
-      'UPDATE cccat13.ride SET status = $1, driver_id = $2 WHERE ride_id = $3', [
-        'accepted', input[:driver_id], input[:ride_id]
-      ]
-    )
-  ensure
-    connection.close if connection
+    ride_dao.update({ status: 'accepted', driver_id: input[:driver_id], ride_id: input[:ride_id] })
   end
 
   def ride(ride_id)
-    connection = PG.connect('postgres://postgres:123456@localhost:5432/app')
-    row = connection.exec("SELECT passenger_id, ride_id, status, driver_id, from_lat, date, from_long, to_lat, to_long, fare, distance FROM cccat13.ride
-      WHERE ride_id = '#{ride_id}'").first
-
-    {
-      passenger_id: row['passenger_id'], ride_id: row['ride_id'], status: row['status'], driver_id: row['driver_id'],
-      date: row['date'], from_lat: row['from_lat'], from_long: row['from_long'], to_lat: row['to_lat'], to_long: row['to_long'],
-      fare: row['fare'], distance: row['distance']
-    }
-  ensure
-    connection.close if connection
+    ride_dao.find_by_id(ride_id)
   end
 end

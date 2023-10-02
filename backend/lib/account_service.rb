@@ -13,8 +13,8 @@ class AccountService
   def initialize(cpf_validator: CpfValidator.new, account_dao: AccountDAOPostgres.new,
                  mailer_gateway: MailerGateway.new)
     @cpf_validator = cpf_validator
-    @mailer_gateway = mailer_gateway
     @account_dao = account_dao
+    @mailer_gateway = mailer_gateway
   end
 
   def signup(input)

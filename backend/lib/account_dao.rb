@@ -1,5 +1,3 @@
-require 'pg'
-
 class AccountDAO
   def find_by_email(_email)
     raise NotImplemented
