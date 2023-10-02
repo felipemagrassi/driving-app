@@ -14,9 +14,8 @@ class RideService
     raise 'Account is not a passenger' if account[:is_passenger] == false
     raise 'Passenger already in a ride' if ride_dao.find_active_rides_by_passenger_id(input[:passenger_id])
 
-    ride = input.to_h.merge(ride_id: ride_id, status: 'requested', fare: 0, distance: 0, date: Time.now)
+    ride = input.to_h.merge(ride_id:, status: 'requested', fare: 0, distance: 0, date: Time.now)
     ride_dao.save(ride)
-
     { ride_id: }
   end
 
@@ -28,6 +27,14 @@ class RideService
     raise 'Driver already in a ride' if ride_dao.find_active_rides_by_driver_id(input[:driver_id])
 
     ride_dao.update({ status: 'accepted', driver_id: input[:driver_id], ride_id: input[:ride_id] })
+  end
+
+  def start_ride(ride_id)
+    ride = ride_dao.find_by_id(ride_id)
+
+    raise 'Ride status is not accepted' if ride[:status] != 'accepted'
+
+    ride_dao.update({ status: 'in_progress', ride_id:, driver_id: ride[:driver_id] })
   end
 
   def ride(ride_id)
