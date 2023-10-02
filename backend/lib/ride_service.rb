@@ -1,11 +1,9 @@
 require 'securerandom'
-require_relative 'account_dao_postgres'
-require_relative 'ride_dao_postgres'
 
 class RideService
   attr_reader :account_dao, :ride_dao
 
-  def initialize(account_dao: AccountDAOPostgres.new, ride_dao: RideDAOPostgres.new)
+  def initialize(account_dao:, ride_dao:)
     @account_dao = account_dao
     @ride_dao = ride_dao
   end

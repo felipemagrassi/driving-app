@@ -2,11 +2,17 @@ require_relative 'ride_service'
 require_relative 'account_service'
 require_relative 'command'
 
+require_relative 'account_dao_postgres'
+require_relative 'ride_dao_postgres'
+
 require 'sinatra'
 require 'json'
 
-account_service = AccountService.new
-ride_service = RideService.new
+account_dao = AccountDAOPostgres.new
+ride_dao = RideDAOPostgres.new
+
+account_service = AccountService.new(account_dao: account_dao)
+ride_service = RideService.new(account_dao: account_dao, ride_dao: ride_dao)
 
 get '/' do
   'Hello World!'
