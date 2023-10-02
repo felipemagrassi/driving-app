@@ -11,9 +11,8 @@ require 'json'
 account_dao = AccountDAOPostgres.new
 ride_dao = RideDAOPostgres.new
 
-account_service = AccountService.new(account_dao: account_dao)
-ride_service = RideService.new(account_dao: account_dao, ride_dao: ride_dao)
-
+account_service = AccountService.new(account_dao:)
+ride_service = RideService.new(account_dao:, ride_dao:)
 get '/' do
   'Hello World!'
 end
@@ -53,6 +52,14 @@ post('/accept-ride') do
   content_type :json
   status 201
   body ride_service.accept_ride(command).to_json
+end
+
+post('/start-ride') do
+  body = JSON.parse(request.body.read)
+  command = StartRideCommand.new(body)
+  content_type :json
+  status 201
+  body ride_service.start_ride(command[:ride_id]).to_json
 end
 
 get('/ride/:ride_id') do
@@ -99,6 +106,15 @@ class RequestRideCommand
         lng: to[:lng]
       }
     }
+  end
+end
+
+class StartRideCommand
+  include Command
+  attr_accessor :ride_id
+
+  def [](key)
+    send(key)
   end
 end
 

@@ -27,7 +27,7 @@ RSpec.describe 'API' do
     expect(account['is_passenger']).to eq(input[:is_passenger])
   end
 
-  it 'should be able to request a ride and accept a ride' do
+  it 'should be able to request, accept and start a ride' do
     passenger_input = { name: 'John Doe',
                         email: "john.doe#{rand(1000)}@email.com",
                         cpf: '96273263728',
@@ -75,5 +75,13 @@ RSpec.describe 'API' do
 
     expect(ride['driver_id']).to eq(driver_id)
     expect(ride['status']).to eq('accepted')
+
+    HTTP.headers(content_type: 'application/json')
+    .post('http://localhost:4567/start-ride', json: { ride_id: ride_id })
+
+    ride = JSON.parse(HTTP.get("http://localhost:4567/ride/#{ride_id}"))
+
+    expect(ride['status']).to eq('in_progress')
+
   end
 end
