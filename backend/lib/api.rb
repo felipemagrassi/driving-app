@@ -30,13 +30,15 @@ rescue StandardError
 end
 
 post('/request-ride') do
-  command = RequestRideCommand.new(JSON.parse(request.body.read))
+  body = JSON.parse(request.body.read)
+  command = RequestRideCommand.new(body)
 
   content_type :json
   status 201
   body ride_service.request_ride(command).to_json
 rescue StandardError => e
   status 400
+  puts e.message, e.backtrace
   body({ result: 'error', message: e.message }.to_json)
 end
 
@@ -77,6 +79,20 @@ class RequestRideCommand
 
   def [](key)
     send(key)
+  end
+
+  def to_h
+    {
+      passenger_id:,
+      from: {
+        lat: from[:lat],
+        lng: from[:lng]
+      },
+      to: {
+        lat: to[:lat],
+        lng: to[:lng]
+      }
+    }
   end
 end
 

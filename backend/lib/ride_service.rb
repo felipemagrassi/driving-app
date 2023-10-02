@@ -1,6 +1,4 @@
 require 'securerandom'
-require 'pg'
-
 require_relative 'account_dao_postgres'
 require_relative 'ride_dao_postgres'
 
@@ -18,23 +16,13 @@ class RideService
     raise 'Account is not a passenger' if account[:is_passenger] == false
     raise 'Passenger already in a ride' if ride_dao.find_active_rides_by_passenger_id(input[:passenger_id])
 
-    ride_dao.save(
-      {
-        **input,
-        ride_id:,
-        date: Time.now,
-        status: 'requested',
-        fare: 0,
-        distance: 0
-      }
-    )
+    ride = input.to_h.merge(ride_id: ride_id, status: 'requested', fare: 0, distance: 0, date: Time.now)
+    ride_dao.save(ride)
 
     { ride_id: }
   end
 
   def accept_ride(input)
-    connection = PG.connect('postgres://postgres:123456@localhost:5432/app')
-
     driver = account_dao.find_by_account_id(input[:driver_id])
 
     raise 'Account is not a driver' if driver[:is_driver] == false
