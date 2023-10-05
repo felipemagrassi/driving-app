@@ -1,27 +1,33 @@
-require 'ride_service'
-require 'account_service'
-
 require 'account_dao_inmemory'
 require 'ride_dao_postgres'
 
-RSpec.describe RideService do
+require_relative '../lib/signup'
+require_relative '../lib/get_ride'
+require_relative '../lib/accept_ride'
+require_relative '../lib/start_ride'
+require_relative '../lib/request_ride'
+
+RSpec.describe 'Ride' do
   let(:account_dao) { AccountDAOInMemory.new }
   let(:ride_dao) { RideDAOPostgres.new }
-  let(:account_service) { AccountService.new(account_dao:) }
-  let(:ride_service) { RideService.new(account_dao:, ride_dao:) }
+  let(:signup) { Signup.new(account_dao:) }
+  let(:get_ride) { GetRide.new(ride_dao:) }
+  let(:accept_ride) { AcceptRide.new(account_dao:, ride_dao:) }
+  let(:start_ride) { StartRide.new(account_dao:, ride_dao:) }
+  let(:request_ride) { RequestRide.new(account_dao:, ride_dao:) }
 
   it 'should request and consult a ride' do
     input_signup = { name: 'John Doe',
                      email: "john.doe#{rand(100_000)}@email.com",
                      cpf: '96273263728',
                      is_passenger: true }
-    output_signup = account_service.signup(input_signup)
+    output_signup = signup.execute(input_signup)
 
     input_request_ride = { passenger_id: output_signup[:account_id],
                            from: { lat: -23.5656, lng: -46.6565 },
                            to: { lat: -23.5656, lng: -46.6565 } }
-    output_request_ride = ride_service.request_ride(input_request_ride)
-    ride = ride_service.ride(output_request_ride[:ride_id])
+    output_request_ride = request_ride.execute(input_request_ride)
+    ride = get_ride.execute(output_request_ride[:ride_id])
 
     expect(ride).to be_truthy
     expect(ride[:passenger_id]).to eq(output_signup[:account_id])
@@ -41,12 +47,12 @@ RSpec.describe RideService do
                      email: "john.doe#{rand(100_000)}@email.com",
                      cpf: '96273263728',
                      is_passenger: false }
-    output_signup = account_service.signup(input_signup)
+    output_signup = signup.execute(input_signup)
 
     input_request_ride = { passenger_id: output_signup[:account_id],
                            from: { lat: -23.5656, lng: -46.6565 },
                            to: { lat: -23.5656, lng: -46.6565 } }
-    expect { ride_service.request_ride(input_request_ride) }.to raise_error('Account is not a passenger')
+    expect { request_ride.execute(input_request_ride) }.to raise_error('Account is not a passenger')
   end
 
   it 'should not accept ride from an passenger that already is in a ride' do
@@ -54,13 +60,13 @@ RSpec.describe RideService do
                      email: "john.doe#{rand(100_000)}@email.com",
                      cpf: '96273263728',
                      is_passenger: true }
-    output_signup = account_service.signup(input_signup)
+    output_signup = signup.execute(input_signup)
 
     input_request_ride = { passenger_id: output_signup[:account_id],
                            from: { lat: -23.5656, lng: -46.6565 },
                            to: { lat: -23.5656, lng: -46.6565 } }
-    ride_service.request_ride(input_request_ride)
-    expect { ride_service.request_ride(input_request_ride) }.to raise_error('Passenger already in a ride')
+    request_ride.execute(input_request_ride)
+    expect { request_ride.execute(input_request_ride) }.to raise_error('Passenger already in a ride')
   end
 
   it 'should be able to accept a ride and start it' do
@@ -68,33 +74,33 @@ RSpec.describe RideService do
                                email: "john.doe#{rand(100_000)}@email.com",
                                cpf: '96273263728',
                                is_passenger: true }
-    passenger_output_signup = account_service.signup(passenger_signup_input)
+    passenger_output_signup = signup.execute(passenger_signup_input)
 
     driver_signup_input = { name: 'John Doe',
                             email: "john.doe#{rand(100_000)}@email.com",
                             cpf: '96273263728',
                             car_plate: 'ABC1234',
                             is_driver: true }
-    driver_signup_output = account_service.signup(driver_signup_input)
+    driver_signup_output = signup.execute(driver_signup_input)
 
     input_request_ride = { passenger_id: passenger_output_signup[:account_id],
                            from: { lat: -23.5656, lng: -46.6565 },
                            to: { lat: -23.5656, lng: -46.6565 } }
 
-    output_request_ride = ride_service.request_ride(input_request_ride)
-    ride = ride_service.ride(output_request_ride[:ride_id])
+    output_request_ride = request_ride.execute(input_request_ride)
+    ride = get_ride.execute(output_request_ride[:ride_id])
 
     input_accept_ride = {
       ride_id: ride[:ride_id],
       driver_id: driver_signup_output[:account_id]
     }
 
-    ride_service.accept_ride(input_accept_ride)
-    accepted_ride = ride_service.ride(ride[:ride_id])
+    accept_ride.execute(input_accept_ride)
+    accepted_ride = get_ride.execute(ride[:ride_id])
     expect(accepted_ride[:status]).to eq('accepted')
 
-    ride_service.start_ride(ride[:ride_id])
-    ride = ride_service.ride(ride[:ride_id])
+    start_ride.execute(ride[:ride_id])
+    ride = get_ride.execute(ride[:ride_id])
 
     expect(ride[:status]).to eq('in_progress')
   end
@@ -103,23 +109,23 @@ RSpec.describe RideService do
                                email: "john.doe#{rand(100_000)}@email.com",
                                cpf: '96273263728',
                                is_passenger: true }
-    passenger_output_signup = account_service.signup(passenger_signup_input)
+    passenger_output_signup = signup.execute(passenger_signup_input)
 
     driver_signup_input = { name: 'John Doe',
                             email: "john.doe#{rand(100_000)}@email.com",
                             cpf: '96273263728',
                             car_plate: 'ABC1234',
                             is_driver: true }
-    driver_signup_output = account_service.signup(driver_signup_input)
+    driver_signup_output = signup.execute(driver_signup_input)
 
     input_request_ride = { passenger_id: passenger_output_signup[:account_id],
                            from: { lat: -23.5656, lng: -46.6565 },
                            to: { lat: -23.5656, lng: -46.6565 } }
 
-    output_request_ride = ride_service.request_ride(input_request_ride)
-    ride = ride_service.ride(output_request_ride[:ride_id])
+    output_request_ride = request_ride.execute(input_request_ride)
+    ride = get_ride.execute(output_request_ride[:ride_id])
 
-    expect { ride_service.start_ride(ride[:ride_id]) }.to raise_error
+    expect { start_ride.execute(ride[:ride_id]) }.to raise_error
   end
 
   it 'should not accept a ride when account is not driver' do
@@ -127,28 +133,28 @@ RSpec.describe RideService do
                                email: "john.doe#{rand(100_000)}@email.com",
                                cpf: '96273263728',
                                is_passenger: true }
-    passenger_output_signup = account_service.signup(passenger_signup_input)
+    passenger_output_signup = signup.execute(passenger_signup_input)
 
     driver_signup_input = { name: 'John Doe',
                             email: "john.doe#{rand(100_000)}@email.com",
                             cpf: '96273263728',
                             car_plate: 'ABC1234',
                             is_driver: false }
-    driver_signup_output = account_service.signup(driver_signup_input)
+    driver_signup_output = signup.execute(driver_signup_input)
 
     input_request_ride = { passenger_id: passenger_output_signup[:account_id],
                            from: { lat: -23.5656, lng: -46.6565 },
                            to: { lat: -23.5656, lng: -46.6565 } }
 
-    output_request_ride = ride_service.request_ride(input_request_ride)
-    ride = ride_service.ride(output_request_ride[:ride_id])
+    output_request_ride = request_ride.execute(input_request_ride)
+    ride = get_ride.execute(output_request_ride[:ride_id])
 
     input_accept_ride = {
       ride_id: ride[:ride_id],
       driver_id: driver_signup_output[:account_id]
     }
 
-    expect { ride_service.accept_ride(input_accept_ride) }.to raise_error('Account is not a driver')
+    expect { accept_ride.execute(input_accept_ride) }.to raise_error('Account is not a driver')
   end
 
   it 'should not accept a ride when ride status is not requested' do
@@ -156,29 +162,29 @@ RSpec.describe RideService do
                                email: "john.doe#{rand(100_000)}@email.com",
                                cpf: '96273263728',
                                is_passenger: true }
-    passenger_output_signup = account_service.signup(passenger_signup_input)
+    passenger_output_signup = signup.execute(passenger_signup_input)
 
     driver_signup_input = { name: 'John Doe',
                             email: "john.doe#{rand(100_000)}@email.com",
                             cpf: '96273263728',
                             car_plate: 'ABC1234',
                             is_driver: true }
-    driver_signup_output = account_service.signup(driver_signup_input)
+    driver_signup_output = signup.execute(driver_signup_input)
 
     input_request_ride = { passenger_id: passenger_output_signup[:account_id],
                            from: { lat: -23.5656, lng: -46.6565 },
                            to: { lat: -23.5656, lng: -46.6565 } }
 
-    output_request_ride = ride_service.request_ride(input_request_ride)
-    ride = ride_service.ride(output_request_ride[:ride_id])
+    output_request_ride = request_ride.execute(input_request_ride)
+    ride = get_ride.execute(output_request_ride[:ride_id])
 
     input_accept_ride = {
       ride_id: ride[:ride_id],
       driver_id: driver_signup_output[:account_id]
     }
 
-    ride_service.accept_ride(input_accept_ride)
-    expect { ride_service.accept_ride(input_accept_ride) }.to raise_error('Ride status is not requested')
+    accept_ride.execute(input_accept_ride)
+    expect { accept_ride.execute(input_accept_ride) }.to raise_error('Ride status is not requested')
   end
 
   it 'should not accept a ride when driver is already in a ride' do
@@ -186,20 +192,20 @@ RSpec.describe RideService do
                                email: "john.doe#{rand(100_000)}@email.com",
                                cpf: '96273263728',
                                is_passenger: true }
-    second_passenger_output_signup = account_service.signup(passenger_signup_input)
+    second_passenger_output_signup = signup.execute(passenger_signup_input)
 
     second_passenger_signup_input = { name: 'John Doe',
                                       email: "john.doe#{rand(100_000)}@email.com",
                                       cpf: '96273263728',
                                       is_passenger: true }
-    passenger_output_signup = account_service.signup(second_passenger_signup_input)
+    passenger_output_signup = signup.execute(second_passenger_signup_input)
 
     driver_signup_input = { name: 'John Doe',
                             email: "john.doe#{rand(100_000)}@email.com",
                             cpf: '96273263728',
                             car_plate: 'ABC1234',
                             is_driver: true }
-    driver_signup_output = account_service.signup(driver_signup_input)
+    driver_signup_output = signup.execute(driver_signup_input)
 
     input_second_request_ride = { passenger_id: second_passenger_output_signup[:account_id],
                                   from: { lat: -23.5656, lng: -46.6565 },
@@ -209,10 +215,10 @@ RSpec.describe RideService do
                            from: { lat: -23.5656, lng: -46.6565 },
                            to: { lat: -23.5656, lng: -46.6565 } }
 
-    output_request_ride = ride_service.request_ride(input_request_ride)
-    output_request_second_ride = ride_service.request_ride(input_second_request_ride)
-    ride = ride_service.ride(output_request_ride[:ride_id])
-    second_ride = ride_service.ride(output_request_second_ride[:ride_id])
+    output_request_ride = request_ride.execute(input_request_ride)
+    output_request_second_ride = request_ride.execute(input_second_request_ride)
+    ride = get_ride.execute(output_request_ride[:ride_id])
+    second_ride = get_ride.execute(output_request_second_ride[:ride_id])
 
     input_accept_ride = {
       ride_id: ride[:ride_id],
@@ -224,7 +230,7 @@ RSpec.describe RideService do
       driver_id: driver_signup_output[:account_id]
     }
 
-    ride_service.accept_ride(input_accept_ride)
-    expect { ride_service.accept_ride(input_accept_second_ride) }.to raise_error('Driver already in a ride')
+    accept_ride.execute(input_accept_ride)
+    expect { accept_ride.execute(input_accept_second_ride) }.to raise_error('Driver already in a ride')
   end
 end

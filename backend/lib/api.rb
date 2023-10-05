@@ -1,9 +1,15 @@
-require_relative 'ride_service'
-require_relative 'account_service'
 require_relative 'command'
 
 require_relative 'account_dao_postgres'
 require_relative 'ride_dao_postgres'
+
+require_relative 'signup'
+require_relative 'get_account'
+
+require_relative 'request_ride'
+require_relative 'accept_ride'
+require_relative 'start_ride'
+require_relative 'get_ride'
 
 require 'sinatra'
 require 'json'
@@ -11,8 +17,14 @@ require 'json'
 account_dao = AccountDAOPostgres.new
 ride_dao = RideDAOPostgres.new
 
-account_service = AccountService.new(account_dao:)
-ride_service = RideService.new(account_dao:, ride_dao:)
+signup = Signup.new(account_dao:)
+get_account = GetAccount.new(account_dao:)
+
+request_ride = RequestRide.new(ride_dao:, account_dao:)
+accept_ride = AcceptRide.new(ride_dao:, account_dao:)
+start_ride = StartRide.new(account_dao:, ride_dao:)
+get_ride = GetRide.new(ride_dao:)
+
 get '/' do
   'Hello World!'
 end
@@ -21,7 +33,7 @@ post('/signup') do
   command = SignupCommand.new(JSON.parse(request.body.read))
   content_type :json
   status 201
-  body account_service.signup(command).to_json
+  body signup.execute(command).to_json
 rescue StandardError
   status 400
 end
@@ -29,7 +41,7 @@ end
 get('/account/:account_id') do
   status 200
   content_type :json
-  body account_service.account(params[:account_id]).to_json
+  body get_account.execute(params[:account_id]).to_json
 rescue StandardError
   status 404
 end
@@ -40,7 +52,7 @@ post('/request-ride') do
 
   content_type :json
   status 201
-  body ride_service.request_ride(command).to_json
+  body request_ride.execute(command).to_json
 rescue StandardError => e
   status 400
   puts e.message, e.backtrace
@@ -51,7 +63,7 @@ post('/accept-ride') do
   command = AcceptRideCommand.new(JSON.parse(request.body.read))
   content_type :json
   status 201
-  body ride_service.accept_ride(command).to_json
+  body accept_ride.execute(command).to_json
 end
 
 post('/start-ride') do
@@ -59,13 +71,13 @@ post('/start-ride') do
   command = StartRideCommand.new(body)
   content_type :json
   status 201
-  body ride_service.start_ride(command[:ride_id]).to_json
+  body start_ride.execute(command[:ride_id]).to_json
 end
 
 get('/ride/:ride_id') do
   status 200
   content_type :json
-  body ride_service.ride(params[:ride_id]).to_json
+  body get_ride.execute(params[:ride_id]).to_json
 end
 
 error do

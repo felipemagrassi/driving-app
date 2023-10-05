@@ -1,3 +1,5 @@
+require_relative 'account_dao'
+
 class AccountDAOInMemory < AccountDAO
   attr_reader :accounts
 
