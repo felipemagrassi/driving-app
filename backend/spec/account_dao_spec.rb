@@ -3,6 +3,8 @@ require 'account_dao_inmemory'
 require 'account_dao_postgres'
 require 'securerandom'
 
+require 'account'
+
 RSpec.shared_examples 'AccountDAO Adapter' do
   it 'should save an account and retrieve by email' do
     account_dao = described_class.new
@@ -10,9 +12,14 @@ RSpec.shared_examples 'AccountDAO Adapter' do
     input = { name: 'John Doe',
               email: "john.doe#{rand(1000)}@email.com",
               cpf: '96273263728',
-              is_passenger: true }
+              is_passenger: true,
+              is_driver: false,
+              car_plate: nil }
 
-    account_dao.save(input)
+    account = Account.create(input[:name], input[:email], input[:cpf], input[:is_passenger],
+                             input[:is_driver], input[:car_plate])
+
+    account_dao.save(account)
 
     account = account_dao.find_by_email(input[:email])
 
@@ -22,17 +29,19 @@ RSpec.shared_examples 'AccountDAO Adapter' do
   it 'should save an account and retrieve by account_id' do
     account_dao = described_class.new
 
-    input = {
-      account_id: SecureRandom.uuid,
-      name: 'John Doe',
-      email: "john.doe#{rand(1000)}@email.com",
-      cpf: '96273263728',
-      is_passenger: true
-    }
+    input = { name: 'John Doe',
+              email: "john.doe#{rand(1000)}@email.com",
+              cpf: '96273263728',
+              is_passenger: true,
+              is_driver: false,
+              car_plate: nil }
 
-    account_dao.save(input)
+    account = Account.create(input[:name], input[:email], input[:cpf], input[:is_passenger],
+                             input[:is_driver], input[:car_plate])
 
-    account = account_dao.find_by_account_id(input[:account_id])
+    account_dao.save(account)
+
+    account = account_dao.find_by_account_id(account.account_id)
 
     expect(account).to be_truthy
   end

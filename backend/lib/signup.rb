@@ -1,9 +1,6 @@
 # frozen_string_literal: true
 
-require 'securerandom'
-require 'pg'
-
-require_relative 'cpf_validator'
+require_relative 'account'
 require_relative 'account_dao'
 require_relative 'mailer_gateway'
 
@@ -18,32 +15,14 @@ class Signup
   end
 
   def execute(input)
-    account_id = SecureRandom.uuid
-    account = account_dao.find_by_email(input[:email])
+    existing_account = account_dao.find_by_email(input[:email])
+    raise 'Account already exists' if existing_account
 
-    raise 'Account already exists' if account
-    raise ArgumentError, 'Invalid Name' unless input[:name].match?(/[a-zA-Z] [a-zA-Z]+$/)
-    raise ArgumentError, 'Invalid Email' unless input[:email].match?(/^(.*)@(.*)$/)
-    raise ArgumentError, 'Invalid CPF' unless cpf_validator.validate(input[:cpf])
-
-    raise ArgumentError, 'Invalid car plate' if input[:is_driver] && !input[:car_plate].match?(/[A-Z]{3}[0-9]{4}/)
-
-    account_dao.save({
-                       account_id:,
-                       name: input[:name],
-                       email: input[:email],
-                       cpf: input[:cpf],
-                       is_passenger: input[:is_passenger],
-                       is_driver: input[:is_driver],
-                       date: Time.now,
-                       is_verified: false,
-                       verification_code: SecureRandom.uuid
-                     })
-
+    account = Account.create(input[:name], input[:email], input[:cpf], input[:is_passenger], input[:is_driver],
+                             input[:car_plate])
+    account_dao.save(account)
     mailer_gateway.send(input[:email], 'Welcome to our app', 'You are now able to use our app')
-
-    { account_id: }
+    { account_id: account.account_id }
   end
   alias call execute
-
 end
