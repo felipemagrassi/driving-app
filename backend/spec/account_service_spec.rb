@@ -5,8 +5,8 @@ require 'account_dao_inmemory'
 
 RSpec.describe 'Account' do
   let(:account_dao) { AccountDAOInMemory.new }
-  let(:signup) { Signup.new(account_dao: account_dao) }
-  let(:get_account) { GetAccount.new(account_dao: account_dao) }
+  let(:signup) { Signup.new(account_dao:) }
+  let(:get_account) { GetAccount.new(account_dao:) }
 
   it 'should create an passenger with stub' do
     input = { name: 'John Doe',
@@ -119,14 +119,14 @@ RSpec.describe 'Account' do
     account = get_account.execute(output[:account_id])
 
     expect(account).to be_truthy
-    expect(account[:name]).to eq(input[:name])
-    expect(account[:email]).to eq(input[:email])
-    expect(account[:cpf]).to eq(input[:cpf])
-    expect(account[:is_passenger]).to eq(input[:is_passenger])
-    expect(account[:is_driver]).to eq(false)
-    expect(account[:is_verified]).to eq(false)
-    expect(account[:verification_code]).to be_truthy
-    expect(account[:account_id]).to be_truthy
+    expect(account.name).to eq(input[:name])
+    expect(account.email).to eq(input[:email])
+    expect(account.cpf).to eq(input[:cpf])
+    expect(account.is_passenger).to eq(input[:is_passenger])
+    expect(account.is_driver).to be_falsey
+    expect(account.is_verified).to be_falsey
+    expect(account.verification_code).to be_truthy
+    expect(account.account_id).to be_truthy
   end
 
   it 'should not create an account with invalid name' do
@@ -171,16 +171,19 @@ RSpec.describe 'Account' do
     input = { name: 'John Doe',
               email: "john.doe#{rand(1000)}@email.com",
               cpf: '96273263728',
-              car_plate: 'AAA1234',
-              is_driver: true }
+              is_driver: true,
+              car_plate: 'AAA1234' }
 
     output = signup.execute(input)
-
     account = get_account.execute(output[:account_id])
 
-    expect(account[:account_id]).to be_truthy
-    expect(account[:cpf]).to eq(input[:cpf])
-    expect(account[:is_driver]).to eq(true)
+    expect(account.account_id).to be_truthy
+    expect(account.cpf).to eq(input[:cpf])
+    expect(account.name).to eq(input[:name])
+    expect(account.email).to eq(input[:email])
+    expect(account.car_plate).to eq(input[:car_plate])
+    expect(account.is_passenger).to eq(false)
+    expect(account.is_driver).to eq(true)
   end
 
   it 'should not create an driver with invalid car plate' do

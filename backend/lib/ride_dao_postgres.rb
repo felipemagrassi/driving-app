@@ -1,7 +1,6 @@
 require 'pg'
-require_relative 'ride_dao'
 
-class RideDAOPostgres < RideDAO
+class RideDAOPostgres
   def find_by_id(ride_id)
     connection = PG.connect('postgres://postgres:123456@localhost:5432/app')
     connection.exec("SELECT * FROM cccat13.ride WHERE ride_id = '#{ride_id}'").first.transform_keys(&:to_sym)
@@ -11,8 +10,8 @@ class RideDAOPostgres < RideDAO
 
   def find_active_rides_by_passenger_id(passenger_id)
     connection = PG.connect('postgres://postgres:123456@localhost:5432/app')
-    connection.exec("SELECT * FROM cccat13.ride WHERE passenger_id = '#{passenger_id}' AND status <> 'completed'")
-              .first
+    ride = connection.exec("SELECT * FROM cccat13.ride WHERE passenger_id = '#{passenger_id}' AND status <> 'completed'")
+                     .first
               &.transform_keys(&:to_sym)
   ensure
     connection&.close

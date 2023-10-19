@@ -1,21 +1,26 @@
 require 'securerandom'
-require_relative '../lib/ride_dao'
 require_relative '../lib/ride_dao_postgres'
+require_relative '../lib/ride_dao_inmemory'
+require_relative '../lib/ride'
 
 RSpec.shared_examples 'RideDAO Adapter' do
   ride_dao = described_class.new
 
   it 'should save and find a ride by id' do
-    ride_id = SecureRandom.uuid
     passenger_id = SecureRandom.uuid
 
-    ride_input = { ride_id:, passenger_id:,
+    ride_input = { passenger_id:,
                    from: { lat: '-23.5656', lng: '-46.6565' },
                    to: { lat: '-23.5656', lng: '-46.6565' },
                    date: Time.now, status: 'requested', fare: 0, distance: 0 }
-    ride_dao.save(ride_input)
 
-    ride = ride_dao.find_by_id(ride_input[:ride_id])
+    ride = Ride.create(passenger_id, ride_input[:from][:lat],
+                       ride_input[:from][:lng], ride_input[:to][:lat],
+                       ride_input[:to][:lng])
+
+    ride_dao.save(ride)
+
+    ride = ride_dao.find_by_id(ride[:ride_id])
     expect(ride).to be_truthy
     expect(ride[:ride_id]).to eq(ride_id)
     expect(ride[:passenger_id]).to eq(passenger_id)
@@ -40,7 +45,10 @@ RSpec.shared_examples 'RideDAO Adapter' do
                              to: { lat: '-23.5656', lng: '-46.6565' },
                              date: Time.now, status: 'completed', fare: 0, distance: 0 }
 
-    ride_dao.save(completed_ride_input)
+    ride = Ride.create(passenger_id, ride_input[:from][:lat],
+                       ride_input[:from][:lng], ride_input[:to][:lat],
+                       ride_input[:to][:lng])
+    ride_dao.save(ride)
 
     completed_ride = ride_dao.find_active_rides_by_passenger_id(passenger_id)
 
@@ -88,7 +96,10 @@ RSpec.shared_examples 'RideDAO Adapter' do
                              to: { lat: '-23.5656', lng: '-46.6565' },
                              date: Time.now, status: 'requested', fare: 0, distance: 0 }
 
-    ride_dao.save(requested_ride_input)
+    ride = Ride.create(passenger_id, ride_input[:from][:lat],
+                       ride_input[:from][:lng], ride_input[:to][:lat],
+                       ride_input[:to][:lng])
+    ride_dao.save(ride)
     ride = ride_dao.find_by_id(requested_ride_id)
 
     expect(ride).to be_truthy
@@ -110,7 +121,10 @@ RSpec.shared_examples 'RideDAO Adapter' do
                              from: { lat: '-23.5656', lng: '-46.6565' },
                              to: { lat: '-23.5656', lng: '-46.6565' },
                              date: Time.now, status: 'requested', fare: 0, distance: 0 }
-    ride_dao.save(requested_ride_input)
+    ride = Ride.create(passenger_id, ride_input[:from][:lat],
+                       ride_input[:from][:lng], ride_input[:to][:lat],
+                       ride_input[:to][:lng])
+    ride_dao.save(ride)
 
     ride = ride_dao.find_by_id(requested_ride_id)
 
@@ -129,5 +143,9 @@ RSpec.shared_examples 'RideDAO Adapter' do
 end
 
 RSpec.describe RideDAOPostgres do
+  it_behaves_like 'RideDAO Adapter'
+end
+
+RSpec.describe RideDAOInMemory do
   it_behaves_like 'RideDAO Adapter'
 end

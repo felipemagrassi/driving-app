@@ -21,6 +21,7 @@ RSpec.describe 'Ride' do
                      email: "john.doe#{rand(100_000)}@email.com",
                      cpf: '96273263728',
                      is_passenger: true }
+
     output_signup = signup.execute(input_signup)
 
     input_request_ride = { passenger_id: output_signup[:account_id],

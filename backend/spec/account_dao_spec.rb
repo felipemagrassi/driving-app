@@ -1,4 +1,3 @@
-require 'account_dao'
 require 'account_dao_inmemory'
 require 'account_dao_postgres'
 require 'securerandom'
@@ -24,6 +23,13 @@ RSpec.shared_examples 'AccountDAO Adapter' do
     account = account_dao.find_by_email(input[:email])
 
     expect(account).to be_truthy
+    expect(account).to be_a(Account)
+    expect(account.name).to eq(input[:name])
+    expect(account.email).to eq(input[:email])
+    expect(account.cpf).to eq(input[:cpf])
+    expect(account.is_passenger).to be_truthy
+    expect(account.is_driver).to be_falsey
+    expect(account.car_plate).to eq(input[:car_plate])
   end
 
   it 'should save an account and retrieve by account_id' do
@@ -44,6 +50,13 @@ RSpec.shared_examples 'AccountDAO Adapter' do
     account = account_dao.find_by_account_id(account.account_id)
 
     expect(account).to be_truthy
+    expect(account).to be_a(Account)
+    expect(account.name).to eq(input[:name])
+    expect(account.email).to eq(input[:email])
+    expect(account.cpf).to eq(input[:cpf])
+    expect(account.is_passenger).to be_truthy
+    expect(account.is_driver).to be_falsey
+    expect(account.car_plate).to eq(input[:car_plate])
   end
 end
 

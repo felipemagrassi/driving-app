@@ -1,14 +1,11 @@
 # frozen_string_literal: true
 
 require 'securerandom'
-require 'pg'
 
-require_relative 'cpf_validator'
-require_relative 'account_dao'
-require_relative 'mailer_gateway'
+require_relative 'account_dao_postgres'
 
 class GetAccount
-  attr_reader :cpf_validator, :account_dao, :mailer_gateway
+  attr_reader :account_dao
 
   def initialize(account_dao: AccountDAOPostgres.new)
     @account_dao = account_dao
