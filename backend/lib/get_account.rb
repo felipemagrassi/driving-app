@@ -2,12 +2,12 @@
 
 require 'securerandom'
 
-require_relative 'account_dao_postgres'
+require_relative 'account_dao_database'
 
 class GetAccount
   attr_reader :account_dao
 
-  def initialize(account_dao: AccountDAOPostgres.new)
+  def initialize(account_dao:)
     @account_dao = account_dao
   end
 

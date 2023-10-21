@@ -1,5 +1,5 @@
-require 'account_dao_inmemory'
-require 'ride_dao_postgres'
+require_relative '../lib/account_dao_inmemory'
+require_relative '../lib/ride_dao_database'
 
 require_relative '../lib/signup'
 require_relative '../lib/get_ride'
@@ -9,7 +9,7 @@ require_relative '../lib/request_ride'
 
 RSpec.describe 'Ride' do
   let(:account_dao) { AccountDAOInMemory.new }
-  let(:ride_dao) { RideDAOPostgres.new }
+  let(:ride_dao) { RideDAODatabase.new }
   let(:signup) { Signup.new(account_dao:) }
   let(:get_ride) { GetRide.new(ride_dao:) }
   let(:accept_ride) { AcceptRide.new(account_dao:, ride_dao:) }

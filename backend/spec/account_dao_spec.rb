@@ -1,13 +1,12 @@
 require 'account_dao_inmemory'
-require 'account_dao_postgres'
+require 'account_dao_database'
+require_relative '../lib/pg_promise_adapter'
 require 'securerandom'
 
 require 'account'
 
 RSpec.shared_examples 'AccountDAO Adapter' do
   it 'should save an account and retrieve by email' do
-    account_dao = described_class.new
-
     input = { name: 'John Doe',
               email: "john.doe#{rand(1000)}@email.com",
               cpf: '96273263728',
@@ -33,8 +32,6 @@ RSpec.shared_examples 'AccountDAO Adapter' do
   end
 
   it 'should save an account and retrieve by account_id' do
-    account_dao = described_class.new
-
     input = { name: 'John Doe',
               email: "john.doe#{rand(1000)}@email.com",
               cpf: '96273263728',
@@ -61,9 +58,19 @@ RSpec.shared_examples 'AccountDAO Adapter' do
 end
 
 RSpec.describe AccountDAOInMemory do
-  it_behaves_like 'AccountDAO Adapter'
+  let(:account_dao) { AccountDAOInMemory.new }
+
+  include_examples 'AccountDAO Adapter', AccountDAOInMemory
 end
 
-RSpec.describe AccountDAOPostgres do
-  it_behaves_like 'AccountDAO Adapter'
+RSpec.describe AccountDAODatabase do
+  after { connection.close }
+
+  context 'with postgres connection' do
+    let(:connection) { PgPromiseAdapter.new }
+
+    let(:account_dao) { AccountDAODatabase.new(connection:) }
+
+    include_examples 'AccountDAO Adapter', AccountDAODatabase
+  end
 end

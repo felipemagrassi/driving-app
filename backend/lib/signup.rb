@@ -1,13 +1,13 @@
 # frozen_string_literal: true
 
 require_relative 'account'
-require_relative 'account_dao_postgres'
+require_relative 'account_dao_database'
 require_relative 'mailer_gateway'
 
 class Signup
   attr_reader :account_dao, :mailer_gateway
 
-  def initialize(account_dao: AccountDAOPostgres.new,
+  def initialize(account_dao:,
                  mailer_gateway: MailerGateway.new)
     @account_dao = account_dao
     @mailer_gateway = mailer_gateway

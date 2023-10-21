@@ -10,13 +10,13 @@ class AcceptRide
 
   def execute(input)
     driver = account_dao.find_by_account_id(input[:driver_id])
+    ride = ride_dao.find_by_id(input[:ride_id])
 
-    raise 'Account is not a driver' if driver[:is_driver] == false
-    raise 'Ride status is not requested' if ride_dao.find_by_id(input[:ride_id])[:status] != 'requested'
-
+    raise 'Account is not a driver' if driver.is_driver == false
     raise 'Driver already in a ride' if ride_dao.find_active_rides_by_driver_id(input[:driver_id])
 
-    ride_dao.update({ status: 'accepted', driver_id: input[:driver_id], ride_id: input[:ride_id] })
+    ride.accept!
+    ride_dao.update(ride.to_h)
   end
   alias call execute
 end

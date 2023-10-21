@@ -1,11 +1,9 @@
 require 'securerandom'
-require_relative '../lib/ride_dao_postgres'
+require_relative '../lib/ride_dao_database'
 require_relative '../lib/ride_dao_inmemory'
 require_relative '../lib/ride'
 
 RSpec.shared_examples 'RideDAO Adapter' do
-  ride_dao = described_class.new
-
   it 'should save and find a ride by id' do
     passenger_id = SecureRandom.uuid
 
@@ -20,18 +18,20 @@ RSpec.shared_examples 'RideDAO Adapter' do
 
     ride_dao.save(ride)
 
-    ride = ride_dao.find_by_id(ride[:ride_id])
+    ride = ride_dao.find_by_id(ride.ride_id)
+
     expect(ride).to be_truthy
-    expect(ride[:ride_id]).to eq(ride_id)
-    expect(ride[:passenger_id]).to eq(passenger_id)
-    expect(ride[:from_lat]).to eq('-23.5656')
-    expect(ride[:from_long]).to eq('-46.6565')
-    expect(ride[:to_lat]).to eq('-23.5656')
-    expect(ride[:to_long]).to eq('-46.6565')
-    expect(ride[:date]).to be_truthy
-    expect(ride[:status]).to eq('requested')
-    expect(ride[:fare]).to eq('0')
-    expect(ride[:distance]).to eq('0')
+    expect(ride).to be_a(Ride)
+    expect(ride.ride_id).to be_truthy
+    expect(ride.passenger_id).to eq(passenger_id)
+    expect(ride.from_lat).to eq('-23.5656')
+    expect(ride.from_long).to eq('-46.6565')
+    expect(ride.to_lat).to eq('-23.5656')
+    expect(ride.to_long).to eq('-46.6565')
+    expect(ride.date).to be_truthy
+    expect(ride.status).to eq('requested')
+    expect(ride.fare).to eq('0')
+    expect(ride.distance).to eq('0')
   end
 
   it 'should be able to verify if a passenger has an active ride' do
@@ -142,10 +142,14 @@ RSpec.shared_examples 'RideDAO Adapter' do
   end
 end
 
-RSpec.describe RideDAOPostgres do
-  it_behaves_like 'RideDAO Adapter'
+RSpec.describe RideDAODatabase do
+  let(:ride_dao) { RideDAODatabase.new }
+
+  include_examples 'RideDAO Adapter', RideDAODatabase
 end
 
 RSpec.describe RideDAOInMemory do
-  it_behaves_like 'RideDAO Adapter'
+  let(:ride_dao) { RideDAOInMemory.new }
+
+  include_examples 'RideDAO Adapter', RideDAOInMemory
 end
