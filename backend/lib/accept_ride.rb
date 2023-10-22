@@ -15,8 +15,9 @@ class AcceptRide
     raise 'Account is not a driver' if driver.is_driver == false
     raise 'Driver already in a ride' if ride_dao.find_active_rides_by_driver_id(input[:driver_id])
 
-    ride.accept!
-    ride_dao.update(ride.to_h)
+    ride.accept!(input[:driver_id])
+
+    ride_dao.update(ride)
   end
   alias call execute
 end

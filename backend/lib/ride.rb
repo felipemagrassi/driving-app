@@ -1,5 +1,6 @@
 class Ride
-  attr_reader :ride_id, :passenger_id, :from_lat, :from_lng, :to_lat, :to_lng, :status, :date, :driver_id, :fare, :distance
+  attr_reader :ride_id, :passenger_id, :from_lat, :from_lng, :to_lat, :to_lng, :status, :date, :driver_id, :fare,
+              :distance
 
   def initialize(ride_id, passenger_id, from_lat, from_long, to_lat, to_long, status, date, driver_id, fare, distance)
     @ride_id = ride_id
@@ -28,9 +29,25 @@ class Ride
   end
 
   def accept!(driver_id)
-    raise 'Ride status is not requested' if self.status != 'requested'
+    raise 'Ride status is not requested' if status != 'requested'
 
     self.status = 'accepted'
     self.driver_id = driver_id
   end
+
+  def start!
+    raise 'Ride status is not accepted' if status != 'accepted'
+
+    self.status = 'in_progress'
+  end
+
+  def complete!
+    raise 'Ride status is not in progress' if status != 'in_progress'
+
+    self.status = 'completed'
+  end
+
+  private
+
+  attr_writer :status, :driver_id
 end

@@ -66,10 +66,10 @@ end
 RSpec.describe AccountDAODatabase do
   after { connection.close }
 
+  let(:account_dao) { AccountDAODatabase.new(connection:) }
+
   context 'with postgres connection' do
     let(:connection) { PgPromiseAdapter.new }
-
-    let(:account_dao) { AccountDAODatabase.new(connection:) }
 
     include_examples 'AccountDAO Adapter', AccountDAODatabase
   end

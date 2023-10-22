@@ -14,7 +14,7 @@ RSpec.describe 'API' do
     signup = HTTP.headers(content_type: 'application/json')
                  .post('http://localhost:4567/signup', json: input)
 
-    account_id = JSON.parse(signup.body)['account_id']
+    account_id = JSON.parse(signup.body).account_id
 
     expect(signup.code).to eq(201)
     expect(account_id).to be_truthy

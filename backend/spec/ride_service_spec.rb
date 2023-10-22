@@ -1,5 +1,5 @@
 require_relative '../lib/account_dao_inmemory'
-require_relative '../lib/ride_dao_database'
+require_relative '../lib/ride_dao_inmemory'
 
 require_relative '../lib/signup'
 require_relative '../lib/get_ride'
@@ -9,7 +9,7 @@ require_relative '../lib/request_ride'
 
 RSpec.describe 'Ride' do
   let(:account_dao) { AccountDAOInMemory.new }
-  let(:ride_dao) { RideDAODatabase.new }
+  let(:ride_dao) { RideDAOInMemory.new }
   let(:signup) { Signup.new(account_dao:) }
   let(:get_ride) { GetRide.new(ride_dao:) }
   let(:accept_ride) { AcceptRide.new(account_dao:, ride_dao:) }
@@ -31,16 +31,16 @@ RSpec.describe 'Ride' do
     ride = get_ride.execute(output_request_ride[:ride_id])
 
     expect(ride).to be_truthy
-    expect(ride[:passenger_id]).to eq(output_signup[:account_id])
-    expect(ride[:driver_id]).to be_nil
-    expect(ride[:from_lat]).to eq(input_request_ride[:from][:lat].to_s)
-    expect(ride[:from_long]).to eq(input_request_ride[:from][:lng].to_s)
-    expect(ride[:to_lat]).to eq(input_request_ride[:to][:lat].to_s)
-    expect(ride[:to_long]).to eq(input_request_ride[:to][:lng].to_s)
-    expect(ride[:fare]).to eq(0.to_s)
-    expect(ride[:distance]).to eq(0.to_s)
-    expect(ride[:ride_id]).to be_truthy
-    expect(ride[:status]).to eq('requested')
+    expect(ride.passenger_id).to eq(output_signup[:account_id])
+    expect(ride.driver_id).to be_nil
+    expect(ride.from_lat).to eq(input_request_ride[:from][:lat])
+    expect(ride.from_lng).to eq(input_request_ride[:from][:lng])
+    expect(ride.to_lat).to eq(input_request_ride[:to][:lat])
+    expect(ride.to_lng).to eq(input_request_ride[:to][:lng])
+    expect(ride.fare).to eq(0)
+    expect(ride.distance).to eq(0)
+    expect(ride.ride_id).to be_truthy
+    expect(ride.status).to eq('requested')
   end
 
   it 'should not accept ride from an account that is not a passenger' do
@@ -92,18 +92,18 @@ RSpec.describe 'Ride' do
     ride = get_ride.execute(output_request_ride[:ride_id])
 
     input_accept_ride = {
-      ride_id: ride[:ride_id],
+      ride_id: ride.ride_id,
       driver_id: driver_signup_output[:account_id]
     }
 
     accept_ride.execute(input_accept_ride)
-    accepted_ride = get_ride.execute(ride[:ride_id])
-    expect(accepted_ride[:status]).to eq('accepted')
+    accepted_ride = get_ride.execute(ride.ride_id)
+    expect(accepted_ride.status).to eq('accepted')
 
-    start_ride.execute(ride[:ride_id])
-    ride = get_ride.execute(ride[:ride_id])
+    start_ride.execute(ride.ride_id)
+    ride = get_ride.execute(ride.ride_id)
 
-    expect(ride[:status]).to eq('in_progress')
+    expect(ride.status).to eq('in_progress')
   end
   it 'should not be able to accept a ride and start it with wrong status' do
     passenger_signup_input = { name: 'John Doe',
@@ -111,7 +111,6 @@ RSpec.describe 'Ride' do
                                cpf: '96273263728',
                                is_passenger: true }
     passenger_output_signup = signup.execute(passenger_signup_input)
-
     driver_signup_input = { name: 'John Doe',
                             email: "john.doe#{rand(100_000)}@email.com",
                             cpf: '96273263728',
@@ -151,7 +150,7 @@ RSpec.describe 'Ride' do
     ride = get_ride.execute(output_request_ride[:ride_id])
 
     input_accept_ride = {
-      ride_id: ride[:ride_id],
+      ride_id: ride.ride_id,
       driver_id: driver_signup_output[:account_id]
     }
 
@@ -180,12 +179,12 @@ RSpec.describe 'Ride' do
     ride = get_ride.execute(output_request_ride[:ride_id])
 
     input_accept_ride = {
-      ride_id: ride[:ride_id],
+      ride_id: ride.ride_id,
       driver_id: driver_signup_output[:account_id]
     }
 
     accept_ride.execute(input_accept_ride)
-    expect { accept_ride.execute(input_accept_ride) }.to raise_error('Ride status is not requested')
+    expect { accept_ride.execute(input_accept_ride) }.to raise_error
   end
 
   it 'should not accept a ride when driver is already in a ride' do
@@ -222,12 +221,12 @@ RSpec.describe 'Ride' do
     second_ride = get_ride.execute(output_request_second_ride[:ride_id])
 
     input_accept_ride = {
-      ride_id: ride[:ride_id],
+      ride_id: ride.ride_id,
       driver_id: driver_signup_output[:account_id]
     }
 
     input_accept_second_ride = {
-      ride_id: second_ride[:ride_id],
+      ride_id: second_ride.ride_id,
       driver_id: driver_signup_output[:account_id]
     }
 

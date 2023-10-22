@@ -1,3 +1,5 @@
+require_relative '../lib/account'
+
 class AccountDAODatabase
   def initialize(connection:)
     @connection = connection
@@ -31,10 +33,12 @@ class AccountDAODatabase
   attr_reader :connection
 
   def account(account)
+    puts account.inspect
     account['is_passenger'] = account['is_passenger'] == 't'
     account['is_driver'] = account['is_driver'] == 't'
     account['is_verified'] = account['is_verified'] == 't'
 
-    Account.restore(account)
+    Account.restore(account['account_id'], account['name'], account['email'], account['cpf'], account['is_passenger'],
+                    account['is_driver'], account['date'], account['is_verified'], account['verification_code'], account['car_plate'])
   end
 end

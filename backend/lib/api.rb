@@ -1,7 +1,9 @@
 require_relative 'command'
 
-require_relative 'account_dao_postgres'
-require_relative 'ride_dao_postgres'
+require_relative 'account_dao_database'
+require_relative 'ride_dao_database'
+
+require_relative 'pg_promise_adapter'
 
 require_relative 'signup'
 require_relative 'get_account'
@@ -14,8 +16,9 @@ require_relative 'get_ride'
 require 'sinatra'
 require 'json'
 
-account_dao = AccountDAOPostgres.new
-ride_dao = RideDAOPostgres.new
+pg_connection = PgPromiseAdapter.new
+account_dao = AccountDAODatabase.new(connection: pg_connection)
+ride_dao = RideDAODatabase.new(connection: pg_connection)
 
 signup = Signup.new(account_dao:)
 get_account = GetAccount.new(account_dao:)
@@ -34,7 +37,8 @@ post('/signup') do
   content_type :json
   status 201
   body signup.execute(command).to_json
-rescue StandardError
+rescue StandardError => e
+  puts e.message, e.backtrace
   status 400
 end
 
@@ -43,6 +47,7 @@ get('/account/:account_id') do
   content_type :json
   body get_account.execute(params[:account_id]).to_json
 rescue StandardError
+  puts e.message, e.backtrace
   status 404
 end
 
@@ -54,6 +59,7 @@ post('/request-ride') do
   status 201
   body request_ride.execute(command).to_json
 rescue StandardError => e
+  puts e.message, e.backtrace
   status 400
   puts e.message, e.backtrace
   body({ result: 'error', message: e.message }.to_json)
@@ -64,6 +70,8 @@ post('/accept-ride') do
   content_type :json
   status 201
   body accept_ride.execute(command).to_json
+rescue StandardError => e
+  puts e.message, e.backtrace
 end
 
 post('/start-ride') do
@@ -72,12 +80,16 @@ post('/start-ride') do
   content_type :json
   status 201
   body start_ride.execute(command[:ride_id]).to_json
+rescue StandardError => e
+  puts e.message, e.backtrace
 end
 
 get('/ride/:ride_id') do
   status 200
   content_type :json
   body get_ride.execute(params[:ride_id]).to_json
+rescue StandardError => e
+  puts e.message, e.backtrace
 end
 
 error do

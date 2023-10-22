@@ -20,13 +20,14 @@ class RideDAOInMemory
   end
 
   def update(input)
-    found_ride = rides.find { |ride| ride.ride_id == input[:ride_id] }
+    found_ride = rides.find { |ride| ride.ride_id == input.ride_id }
     raise 'Ride not found' unless found_ride
 
-    ride.status = input[:status]
-    ride.driver_id = input[:driver_id]
+    rides.delete(found_ride)
 
-    ride
+    rides << input
+
+    input
   end
 
   def save(input)

@@ -10,9 +10,9 @@ class StartRide
 
   def execute(ride_id)
     ride = ride_dao.find_by_id(ride_id)
-    raise 'Ride status is not accepted' if ride[:status] != 'accepted'
+    ride.start!
 
-    ride_dao.update({ status: 'in_progress', ride_id:, driver_id: ride[:driver_id] })
+    ride_dao.update(ride)
   end
   alias call execute
 end
