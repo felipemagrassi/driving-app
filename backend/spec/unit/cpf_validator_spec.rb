@@ -1,4 +1,4 @@
-require 'cpf_validator'
+require_relative '../../lib/domain/cpf_validator'
 
 RSpec.describe CpfValidator do
   ['95818705552',

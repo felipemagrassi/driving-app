@@ -1,3 +1,5 @@
+require_relative '../../infra/command'
+
 class Signup
   attr_reader :account_dao, :mailer_gateway
 

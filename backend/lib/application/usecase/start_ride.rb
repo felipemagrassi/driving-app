@@ -1,3 +1,5 @@
+require_relative '../../infra/command'
+
 class StartRide
   attr_reader :account_dao, :ride_dao
 
