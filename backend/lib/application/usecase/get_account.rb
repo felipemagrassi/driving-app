@@ -1,9 +1,4 @@
 # frozen_string_literal: true
-
-require 'securerandom'
-
-require_relative 'account_dao_database'
-
 class GetAccount
   attr_reader :account_dao
 

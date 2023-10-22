@@ -1,8 +1,9 @@
 require 'securerandom'
-require_relative '../lib/pg_promise_adapter'
-require_relative '../lib/ride_dao_database'
-require_relative '../lib/ride_dao_inmemory'
-require_relative '../lib/ride'
+
+require_relative '../../lib/domain/ride'
+require_relative '../../lib/infra/repository/ride_repository_database'
+require_relative '../../lib/infra/repository/ride_repository_inmemory'
+require_relative '../../lib/infra/database/pg_promise_adapter'
 
 RSpec.shared_examples 'RideDAO Adapter' do
   it 'should save and find a ride by id' do
@@ -140,20 +141,20 @@ RSpec.shared_examples 'RideDAO Adapter' do
   end
 end
 
-RSpec.describe RideDAODatabase do
+RSpec.describe RideRepositoryDatabase do
   after { connection.close }
 
-  let(:ride_dao) { RideDAODatabase.new(connection:) }
+  let(:ride_dao) { RideRepositoryDatabase.new(connection:) }
 
   context 'when using postgres adapter' do
     let(:connection) { PgPromiseAdapter.new }
 
-    include_examples 'RideDAO Adapter', RideDAODatabase
+    include_examples 'RideDAO Adapter', RideRepositoryDatabase
   end
 end
 
-RSpec.describe RideDAOInMemory do
-  let(:ride_dao) { RideDAOInMemory.new }
+RSpec.describe RideRepositoryInMemory do
+  let(:ride_dao) { RideRepositoryInMemory.new }
 
-  include_examples 'RideDAO Adapter', RideDAOInMemory
+  include_examples 'RideDAO Adapter', RideRepositoryInMemory
 end

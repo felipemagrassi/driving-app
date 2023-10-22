@@ -1,4 +1,6 @@
-class AccountDAOInMemory
+require_relative '../../domain/account'
+
+class AccountRepositoryInMemory
   attr_reader :accounts
 
   def initialize

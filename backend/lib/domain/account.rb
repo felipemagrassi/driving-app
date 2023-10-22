@@ -44,4 +44,19 @@ class Account
       verification_code, car_plate
     )
   end
+
+  def to_h
+    {
+      account_id:,
+      name:,
+      email:,
+      cpf:,
+      is_passenger:,
+      is_driver:,
+      date:,
+      is_verified:,
+      verification_code:,
+      car_plate:
+    }
+  end
 end

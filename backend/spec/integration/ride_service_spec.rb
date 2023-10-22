@@ -1,16 +1,18 @@
-require_relative '../lib/account_dao_inmemory'
-require_relative '../lib/ride_dao_inmemory'
+require_relative '../../lib/infra/repository/ride_repository_inmemory'
+require_relative '../../lib/infra/repository/account_repository_inmemory'
+require_relative '../../lib/infra/gateway/mailer_gateway'
 
-require_relative '../lib/signup'
-require_relative '../lib/get_ride'
-require_relative '../lib/accept_ride'
-require_relative '../lib/start_ride'
-require_relative '../lib/request_ride'
+require_relative '../../lib/application/usecase/signup'
+require_relative '../../lib/application/usecase/get_ride'
+require_relative '../../lib/application/usecase/accept_ride'
+require_relative '../../lib/application/usecase/start_ride'
+require_relative '../../lib/application/usecase/request_ride'
 
 RSpec.describe 'Ride' do
-  let(:account_dao) { AccountDAOInMemory.new }
-  let(:ride_dao) { RideDAOInMemory.new }
-  let(:signup) { Signup.new(account_dao:) }
+  let(:account_dao) { AccountRepositoryInMemory.new }
+  let(:ride_dao) { RideRepositoryInMemory.new }
+  let(:mailer_gateway) { MailerGateway.new }
+  let(:signup) { Signup.new(account_dao:, mailer_gateway:) }
   let(:get_ride) { GetRide.new(ride_dao:) }
   let(:accept_ride) { AcceptRide.new(account_dao:, ride_dao:) }
   let(:start_ride) { StartRide.new(account_dao:, ride_dao:) }

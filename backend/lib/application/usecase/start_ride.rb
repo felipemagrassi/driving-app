@@ -1,5 +1,3 @@
-require 'securerandom'
-
 class StartRide
   attr_reader :account_dao, :ride_dao
 
@@ -15,4 +13,13 @@ class StartRide
     ride_dao.update(ride)
   end
   alias call execute
+end
+
+class StartRideCommand
+  include Command
+  attr_accessor :ride_id
+
+  def [](key)
+    send(key)
+  end
 end

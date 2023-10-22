@@ -47,6 +47,27 @@ class Ride
     self.status = 'completed'
   end
 
+  def to_h
+    {
+      ride_id:,
+      passenger_id:,
+      from: {
+        lat: from_lat,
+        lng: from_lng
+      },
+      to: {
+        lat: to_lat,
+        lng: to_lng
+      },
+      status:,
+      date:,
+      driver_id:,
+      fare:,
+      distance:
+
+    }
+  end
+
   private
 
   attr_writer :status, :driver_id

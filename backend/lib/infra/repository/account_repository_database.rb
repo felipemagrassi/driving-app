@@ -1,6 +1,6 @@
-require_relative '../lib/account'
+require_relative '../../domain/account'
 
-class AccountDAODatabase
+class AccountRepositoryDatabase
   def initialize(connection:)
     @connection = connection
   end
@@ -8,11 +8,15 @@ class AccountDAODatabase
   def find_by_email(email)
     result = connection.query('SELECT * FROM cccat13.account WHERE email = $1', [email])
 
+    return if result.first.nil?
+
     account(result.first)
   end
 
   def find_by_account_id(account_id)
     result = connection.query('SELECT * FROM cccat13.account WHERE account_id = $1', [account_id])
+
+    return if result.first.nil?
 
     account(result.first)
   end
@@ -33,7 +37,6 @@ class AccountDAODatabase
   attr_reader :connection
 
   def account(account)
-    puts account.inspect
     account['is_passenger'] = account['is_passenger'] == 't'
     account['is_driver'] = account['is_driver'] == 't'
     account['is_verified'] = account['is_verified'] == 't'

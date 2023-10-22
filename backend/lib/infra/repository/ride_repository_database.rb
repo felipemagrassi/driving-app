@@ -1,6 +1,6 @@
-require_relative 'ride'
+require_relative '../../domain/ride'
 
-class RideDAODatabase
+class RideRepositoryDatabase
   def initialize(connection:)
     @connection = connection
   end

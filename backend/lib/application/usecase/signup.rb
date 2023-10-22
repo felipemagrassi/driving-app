@@ -1,14 +1,8 @@
-# frozen_string_literal: true
-
-require_relative 'account'
-require_relative 'account_dao_database'
-require_relative 'mailer_gateway'
-
 class Signup
   attr_reader :account_dao, :mailer_gateway
 
   def initialize(account_dao:,
-                 mailer_gateway: MailerGateway.new)
+                 mailer_gateway:)
     @account_dao = account_dao
     @mailer_gateway = mailer_gateway
   end
@@ -25,4 +19,14 @@ class Signup
     { account_id: account.account_id }
   end
   alias call execute
+end
+
+class SignupCommand
+  include Command
+
+  attr_accessor :name, :email, :cpf, :is_passenger, :is_driver, :car_plate
+
+  def [](key)
+    send(key)
+  end
 end

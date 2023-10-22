@@ -1,6 +1,7 @@
-require 'ride'
 
-class RideDAOInMemory
+require_relative '../../domain/ride'
+
+class RideRepositoryInMemory
   attr_reader :rides
 
   def initialize

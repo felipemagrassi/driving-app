@@ -1,5 +1,3 @@
-require 'securerandom'
-
 class GetRide
   attr_reader :ride_dao
 

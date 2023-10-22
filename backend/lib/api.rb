@@ -28,6 +28,8 @@ accept_ride = AcceptRide.new(ride_dao:, account_dao:)
 start_ride = StartRide.new(account_dao:, ride_dao:)
 get_ride = GetRide.new(ride_dao:)
 
+# This should become a controller with http adapter to remove sinatra dependency in the future
+
 get '/' do
   'Hello World!'
 end
@@ -45,7 +47,7 @@ end
 get('/account/:account_id') do
   status 200
   content_type :json
-  body get_account.execute(params[:account_id]).to_json
+  body get_account.execute(params[:account_id]).to_h.to_json
 rescue StandardError
   puts e.message, e.backtrace
   status 404
@@ -87,7 +89,7 @@ end
 get('/ride/:ride_id') do
   status 200
   content_type :json
-  body get_ride.execute(params[:ride_id]).to_json
+  body get_ride.execute(params[:ride_id]).to_h.to_json
 rescue StandardError => e
   puts e.message, e.backtrace
 end
@@ -98,66 +100,4 @@ error do
   e = env['sinatra.error']
 
   { result: 'error', message: e['message'] }.to_json
-end
-
-class RequestRideCommand
-  include Command
-
-  attr_accessor :passenger_id
-  attr_reader :from, :to
-
-  def from=(from)
-    @from = from.deep_transform_keys!(&:to_sym)
-  end
-
-  def to=(to)
-    @to = to.deep_transform_keys!(&:to_sym)
-  end
-
-  def [](key)
-    send(key)
-  end
-
-  def to_h
-    {
-      passenger_id:,
-      from: {
-        lat: from[:lat],
-        lng: from[:lng]
-      },
-      to: {
-        lat: to[:lat],
-        lng: to[:lng]
-      }
-    }
-  end
-end
-
-class StartRideCommand
-  include Command
-  attr_accessor :ride_id
-
-  def [](key)
-    send(key)
-  end
-end
-
-class AcceptRideCommand
-  include Command
-
-  attr_accessor :ride_id, :driver_id
-
-  def [](key)
-    send(key)
-  end
-end
-
-class SignupCommand
-  include Command
-
-  attr_accessor :name, :email, :cpf, :is_passenger, :is_driver, :car_plate
-
-  def [](key)
-    send(key)
-  end
 end

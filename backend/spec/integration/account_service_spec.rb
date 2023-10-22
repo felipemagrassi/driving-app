@@ -1,11 +1,13 @@
-require_relative '../lib/signup'
-require_relative '../lib/get_account'
+require_relative '../../lib/application/usecase/signup'
+require_relative '../../lib/application/usecase/get_account'
 
-require 'account_dao_inmemory'
+require_relative '../../lib/infra/repository/account_repository_inmemory'
+require_relative '../../lib/infra/gateway/mailer_gateway'
 
 RSpec.describe 'Account' do
-  let(:account_dao) { AccountDAOInMemory.new }
-  let(:signup) { Signup.new(account_dao:) }
+  let(:account_dao) { AccountRepositoryInMemory.new }
+  let(:mailer_gateway) { MailerGateway.new }
+  let(:signup) { Signup.new(account_dao:, mailer_gateway:) }
   let(:get_account) { GetAccount.new(account_dao:) }
 
   it 'should create an passenger with stub' do
@@ -20,7 +22,7 @@ RSpec.describe 'Account' do
     account_dao_double = instance_double('AccountDAOPostgres')
     allow(account_dao_double).to receive(:save)
     allow(account_dao_double).to receive(:find_by_email)
-    signup = Signup.new(account_dao: account_dao_double)
+    signup = Signup.new(account_dao: account_dao_double, mailer_gateway:)
     output = signup.execute(input)
     input[:account_id] = output[:account_id]
     allow(account_dao_double).to receive(:find_by_account_id).and_return(input)
@@ -47,7 +49,7 @@ RSpec.describe 'Account' do
               is_passenger: true }
 
     account_dao_double = instance_double('AccountDAO')
-    signup = Signup.new(account_dao: account_dao_double)
+    signup = Signup.new(account_dao: account_dao_double, mailer_gateway:)
     get_account = GetAccount.new(account_dao: account_dao_double)
 
     allow(account_dao_double).to receive(:save)

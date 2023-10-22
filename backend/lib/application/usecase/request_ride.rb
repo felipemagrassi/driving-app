@@ -1,5 +1,3 @@
-require 'securerandom'
-
 class RequestRide
   attr_reader :account_dao, :ride_dao
 
@@ -20,4 +18,37 @@ class RequestRide
     { ride_id: ride.ride_id }
   end
   alias call execute
+end
+
+class RequestRideCommand
+  include Command
+
+  attr_accessor :passenger_id
+  attr_reader :from, :to
+
+  def from=(from)
+    @from = from.deep_transform_keys!(&:to_sym)
+  end
+
+  def to=(to)
+    @to = to.deep_transform_keys!(&:to_sym)
+  end
+
+  def [](key)
+    send(key)
+  end
+
+  def to_h
+    {
+      passenger_id:,
+      from: {
+        lat: from[:lat],
+        lng: from[:lng]
+      },
+      to: {
+        lat: to[:lat],
+        lng: to[:lng]
+      }
+    }
+  end
 end

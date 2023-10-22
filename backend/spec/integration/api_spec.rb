@@ -14,7 +14,7 @@ RSpec.describe 'API' do
     signup = HTTP.headers(content_type: 'application/json')
                  .post('http://localhost:4567/signup', json: input)
 
-    account_id = JSON.parse(signup.body).account_id
+    account_id = JSON.parse(signup.body)['account_id']
 
     expect(signup.code).to eq(201)
     expect(account_id).to be_truthy
@@ -46,7 +46,9 @@ RSpec.describe 'API' do
 
     driver_signup = HTTP.headers(content_type: 'application/json')
                         .post('http://localhost:4567/signup', json: driver_input)
+
     driver_id = JSON.parse(driver_signup.body)['account_id']
+
     driver = JSON.parse(HTTP.get("http://localhost:4567/account/#{driver_id}"))
 
     expect(passenger).to be_truthy
@@ -77,11 +79,10 @@ RSpec.describe 'API' do
     expect(ride['status']).to eq('accepted')
 
     HTTP.headers(content_type: 'application/json')
-    .post('http://localhost:4567/start-ride', json: { ride_id: ride_id })
+        .post('http://localhost:4567/start-ride', json: { ride_id: })
 
     ride = JSON.parse(HTTP.get("http://localhost:4567/ride/#{ride_id}"))
 
     expect(ride['status']).to eq('in_progress')
-
   end
 end
